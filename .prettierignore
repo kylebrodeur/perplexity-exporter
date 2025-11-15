@@ -1,0 +1,21 @@
+# Build output
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Captured/exported data
+captured-requests.json
+captured-responses.json
+exported-data/
+
+# Browser data
+browser-data/
+
+# Git
+.git/
+
+# Config files that shouldn't be formatted
+package-lock.json
+pnpm-lock.yaml
