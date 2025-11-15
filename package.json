@@ -1,0 +1,21 @@
+{
+  "name": "perplexity-exporter",
+  "version": "1.0.0",
+  "description": "Export all threads from Perplexity",
+  "type": "module",
+  "scripts": {
+    "capture": "node capture-requests.js",
+    "analyze": "node analyze-capture.js",
+    "configure": "node configure-export.js",
+    "export": "node export-threads.js",
+    "export-all": "node export-all.js",
+    "extract-cookies": "node extract-cookies.js"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0",
+    "puppeteer": "^24.30.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-real-browser": "^1.4.4"
+  }
+}
