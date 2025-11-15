@@ -270,6 +270,13 @@ export class BrowserManager {
   }
 
   /**
+   * Get the cookie manager
+   */
+  getCookieManager(): CookieManager {
+    return this.cookieManager;
+  }
+
+  /**
    * Close browser
    */
   async close(): Promise<void> {
