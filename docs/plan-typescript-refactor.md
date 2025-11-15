@@ -12,7 +12,7 @@ Modernize the Perplexity exporter from ad-hoc JavaScript scripts to a robust Typ
 
 4. **Modularize browser automation** — Create `src/services/BrowserManager.ts` class extracting stealth configuration from `browser-config.js`; implement methods `initializeBrowser()`, `createContext()`, `setupStealth()`; make browser configuration adaptive to support both Chromium and Firefox with browser-specific stealth techniques and fingerprint handling; add `src/services/CookieManager.ts` for secure cookie handling from `extract-cookies.js` and `cookies.json`
 
-5. **Build CLI with proper structure** — Use Commander.js to create unified CLI in `src/cli.ts` replacing `export-all.js`, `export-threads.js`, `capture-requests.js`; add commands `export`, `setup`, `capture`, `configure` with options for output directory, rate limiting, resume capability; implement progress bars with `cli-progress`
+5. **Build browser-based command system** — Create `src/commands/` directory with TypeScript modules for each operation (`ExportCommand.ts`, `SetupCommand.ts`, `CaptureCommand.ts`); each command launches browser automation internally; build thin CLI wrapper in `src/index.ts` using Commander.js to parse arguments and delegate to browser-based commands; implement progress indicators that work within browser context; add interactive prompts for user input during browser sessions
 
 6. **Add error handling & testing** — Wrap all async operations with proper try-catch and typed errors; create `src/utils/errors.ts` with custom error classes; add Jest configuration, write unit tests for `PerplexityApiClient`, `BrowserManager`, utility functions; implement integration tests for end-to-end export workflow
 
