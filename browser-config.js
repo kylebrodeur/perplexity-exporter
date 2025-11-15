@@ -27,7 +27,6 @@ export const BROWSER_CONFIG = {
     // Firefox is much better at bypassing bot detection
     args: [
       // Firefox-specific args (much simpler than Chrome)
-    ],
     ]
   },
   
