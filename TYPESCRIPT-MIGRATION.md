@@ -88,10 +88,11 @@ perplexity-exporter/
 - [ ] Implement CookieManager
 - [ ] Support both Chromium and Firefox
 
-### Phase 5: CLI Implementation
-- [ ] Use Commander.js for unified CLI
-- [ ] Add progress bars
-- [ ] Implement resume capability
+### Phase 5: Browser-Based Command System
+- [ ] Create command modules (ExportCommand, SetupCommand, CaptureCommand)
+- [ ] Each command handles its own browser automation
+- [ ] Build thin CLI wrapper with Commander.js
+- [ ] Add interactive prompts for browser sessions
 
 ### Phase 6: Testing & Error Handling
 - [ ] Add Jest configuration
