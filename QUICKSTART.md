@@ -3,6 +3,7 @@
 ## Overview
 
 This tool helps you export all your Perplexity chat threads by:
+
 1. Capturing network requests to discover API endpoints
 2. Analyzing the captured data
 3. Automatically generating an export script
@@ -17,11 +18,13 @@ npm run capture
 ```
 
 **What happens:**
+
 - Browser opens to Perplexity.ai
 - You log in normally
 - All network requests are recorded
 
 **What you need to do:**
+
 1. Log in to your Perplexity account
 2. Go to your threads/library page (usually `/collections`)
 3. Wait for threads to load
@@ -40,11 +43,13 @@ npm run analyze
 ```
 
 **What happens:**
+
 - Automatically identifies API endpoints
 - Finds authentication headers
 - Provides recommendations
 
-**Output:** 
+**Output:**
+
 - Console shows discovered endpoints
 - `analysis.json` saved with full details
 
@@ -57,10 +62,12 @@ npm run configure
 ```
 
 **What happens:**
+
 - Interactive prompts guide you through configuration
 - Automatically generates a working export script
 
 **You'll need to provide:**
+
 - List threads endpoint (from analysis)
 - Thread detail endpoint (from analysis)
 - Response structure (property names)
@@ -76,12 +83,14 @@ node export-threads-configured.js
 ```
 
 **What happens:**
+
 - Opens browser for authentication
 - Fetches list of all threads
 - Downloads each thread's full content
 - Saves to `exported-threads/` directory
 
 **Output:**
+
 - `exported-threads/all-threads.json` - Combined file
 - `exported-threads/{thread-id}.json` - Individual files
 
@@ -90,16 +99,19 @@ node export-threads-configured.js
 ## Troubleshooting
 
 ### "No threads found"
+
 - Make sure you navigated to the threads page during capture
 - Check that you scrolled to load threads
 - Verify the endpoint path in `analysis.json`
 
 ### "Authentication failed"
+
 - The session may have expired
 - Try re-running the capture step
 - Check if cookies/auth headers are needed
 
 ### "Browser not installed"
+
 ```bash
 npx playwright install chromium
 ```
@@ -108,16 +120,16 @@ npx playwright install chromium
 
 ## File Overview
 
-| File | Purpose |
-|------|---------|
-| `capture-requests.js` | Records network activity |
-| `analyze-capture.js` | Identifies API endpoints |
-| `configure-export.js` | Generates export script |
-| `export-threads-configured.js` | Downloads all threads |
-| `captured-requests.json` | Raw request data |
-| `captured-responses.json` | Raw response data |
-| `analysis.json` | Analyzed endpoints |
-| `exported-threads/` | Your downloaded threads |
+| File                           | Purpose                  |
+| ------------------------------ | ------------------------ |
+| `capture-requests.js`          | Records network activity |
+| `analyze-capture.js`           | Identifies API endpoints |
+| `configure-export.js`          | Generates export script  |
+| `export-threads-configured.js` | Downloads all threads    |
+| `captured-requests.json`       | Raw request data         |
+| `captured-responses.json`      | Raw response data        |
+| `analysis.json`                | Analyzed endpoints       |
+| `exported-threads/`            | Your downloaded threads  |
 
 ---
 

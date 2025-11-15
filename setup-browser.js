@@ -11,7 +11,7 @@ async function setupBrowser() {
   console.log('  • Your login session');
   console.log('  • Cloudflare clearance tokens');
   console.log('  • All cookies and cache\n');
-  console.log('After this setup, you won\'t need to deal with Cloudflare again!\n');
+  console.log("After this setup, you won't need to deal with Cloudflare again!\n");
 
   const { browser, page } = await createStealthBrowser(false, true);
 
@@ -24,10 +24,10 @@ async function setupBrowser() {
   console.log('   2. Log in to Perplexity');
   console.log('   3. Navigate to your Library to verify everything works');
   console.log('   4. Press Ctrl+C when you see your threads/collections\n');
-  console.log('⏰ Take your time - there\'s no rush!\n');
+  console.log("⏰ Take your time - there's no rush!\n");
 
   // Keep browser open until user is ready
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     process.on('SIGINT', async () => {
       console.log('\n\n✅ Setup complete!');
       console.log('📁 Browser data saved to: ./browser-data/');
@@ -35,7 +35,7 @@ async function setupBrowser() {
       console.log('   • Skip Cloudflare challenges (already cleared)');
       console.log('   • Skip login (already authenticated)');
       console.log('   • Go straight to exporting your data\n');
-      
+
       await browser.close();
       process.exit(0);
     });

@@ -27,11 +27,12 @@ export const BROWSER_CONFIG = {
     // Firefox is much better at bypassing bot detection
     args: [
       // Firefox-specific args (much simpler than Chrome)
-    ]
+    ],
   },
-  
+
   context: {
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.140 Safari/537.36',
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.140 Safari/537.36',
     viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 2,
     locale: 'en-US',
@@ -49,9 +50,9 @@ export const BROWSER_CONFIG = {
       'sec-ch-ua-platform-version': '"15.6.1"',
       'sec-ch-ua-arch': '"arm"',
       'sec-ch-ua-bitness': '"64"',
-      'sec-ch-ua-model': '""'
-    }
-  }
+      'sec-ch-ua-model': '""',
+    },
+  },
 };
 
 /**
@@ -61,49 +62,74 @@ export const BROWSER_CONFIG = {
 export const STEALTH_SCRIPT = () => {
   // Overwrite the navigator properties
   Object.defineProperty(navigator, 'webdriver', {
-    get: () => undefined
+    get: () => undefined,
   });
-  
+
   // Mock plugins with realistic data
   Object.defineProperty(navigator, 'plugins', {
     get: () => {
       const plugins = [
-        { name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format', length: 1 },
-        { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: 'Portable Document Format', length: 1 },
-        { name: 'Chromium PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: 'Portable Document Format', length: 1 },
-        { name: 'Microsoft Edge PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: 'Portable Document Format', length: 1 },
-        { name: 'WebKit built-in PDF', filename: 'internal-pdf-viewer', description: 'Portable Document Format', length: 1 }
+        {
+          name: 'PDF Viewer',
+          filename: 'internal-pdf-viewer',
+          description: 'Portable Document Format',
+          length: 1,
+        },
+        {
+          name: 'Chrome PDF Viewer',
+          filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+          description: 'Portable Document Format',
+          length: 1,
+        },
+        {
+          name: 'Chromium PDF Viewer',
+          filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+          description: 'Portable Document Format',
+          length: 1,
+        },
+        {
+          name: 'Microsoft Edge PDF Viewer',
+          filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+          description: 'Portable Document Format',
+          length: 1,
+        },
+        {
+          name: 'WebKit built-in PDF',
+          filename: 'internal-pdf-viewer',
+          description: 'Portable Document Format',
+          length: 1,
+        },
       ];
       plugins.refresh = () => {};
       return plugins;
-    }
+    },
   });
-  
+
   // Languages
   Object.defineProperty(navigator, 'languages', {
-    get: () => ['en-US', 'en']
+    get: () => ['en-US', 'en'],
   });
-  
+
   // Hardware concurrency
   Object.defineProperty(navigator, 'hardwareConcurrency', {
-    get: () => 8
+    get: () => 8,
   });
-  
+
   // Device memory
   Object.defineProperty(navigator, 'deviceMemory', {
-    get: () => 8
+    get: () => 8,
   });
-  
+
   // Platform
   Object.defineProperty(navigator, 'platform', {
-    get: () => 'MacIntel'
+    get: () => 'MacIntel',
   });
-  
+
   // Vendor
   Object.defineProperty(navigator, 'vendor', {
-    get: () => 'Google Inc.'
+    get: () => 'Google Inc.',
   });
-  
+
   // Add chrome runtime
   if (!window.chrome) {
     window.chrome = {};
@@ -111,43 +137,43 @@ export const STEALTH_SCRIPT = () => {
   window.chrome.runtime = {
     connect: () => {},
     sendMessage: () => {},
-    onMessage: { addListener: () => {}, removeListener: () => {} }
+    onMessage: { addListener: () => {}, removeListener: () => {} },
   };
   window.chrome.loadTimes = () => {};
   window.chrome.csi = () => {};
   window.chrome.app = {};
-  
+
   // Mock permissions
   const originalQuery = window.navigator.permissions.query;
-  window.navigator.permissions.query = (parameters) => (
-    parameters.name === 'notifications' ?
-      Promise.resolve({ state: Notification.permission }) :
-      originalQuery(parameters)
-  );
-  
+  window.navigator.permissions.query = (parameters) =>
+    parameters.name === 'notifications'
+      ? Promise.resolve({ state: Notification.permission })
+      : originalQuery(parameters);
+
   // Mock battery API
   if (!navigator.getBattery) {
-    navigator.getBattery = () => Promise.resolve({
-      charging: true,
-      chargingTime: 0,
-      dischargingTime: Infinity,
-      level: 1
-    });
+    navigator.getBattery = () =>
+      Promise.resolve({
+        charging: true,
+        chargingTime: 0,
+        dischargingTime: Infinity,
+        level: 1,
+      });
   }
-  
+
   // Mock connection API
   Object.defineProperty(navigator, 'connection', {
     get: () => ({
       effectiveType: '4g',
       rtt: 50,
       downlink: 10,
-      saveData: false
-    })
+      saveData: false,
+    }),
   });
-  
+
   // Canvas fingerprint randomization
   const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
-  HTMLCanvasElement.prototype.toDataURL = function(...args) {
+  HTMLCanvasElement.prototype.toDataURL = function (...args) {
     const context = this.getContext('2d');
     if (context) {
       const imageData = context.getImageData(0, 0, this.width, this.height);
@@ -158,19 +184,21 @@ export const STEALTH_SCRIPT = () => {
     }
     return originalToDataURL.apply(this, args);
   };
-  
+
   // WebGL fingerprint
   const getParameter = WebGLRenderingContext.prototype.getParameter;
-  WebGLRenderingContext.prototype.getParameter = function(parameter) {
-    if (parameter === 37445) { // UNMASKED_VENDOR_WEBGL
+  WebGLRenderingContext.prototype.getParameter = function (parameter) {
+    if (parameter === 37445) {
+      // UNMASKED_VENDOR_WEBGL
       return 'Apple Inc.';
     }
-    if (parameter === 37446) { // UNMASKED_RENDERER_WEBGL
+    if (parameter === 37446) {
+      // UNMASKED_RENDERER_WEBGL
       return 'Apple M1';
     }
     return getParameter.apply(this, arguments);
   };
-  
+
   // Remove automation hints
   delete navigator.__proto__.webdriver;
   delete Object.getPrototypeOf(navigator).webdriver;
@@ -184,7 +212,7 @@ export const STEALTH_SCRIPT = () => {
  */
 export async function createStealthBrowser(useCookies = true, usePersistentContext = true) {
   let browser, context;
-  
+
   if (usePersistentContext) {
     // Use persistent context - saves all browser data including Cloudflare tokens
     console.log('🔧 Using Firefox with persistent context (browser-data/)');
@@ -197,7 +225,7 @@ export async function createStealthBrowser(useCookies = true, usePersistentConte
   } else {
     browser = await firefox.launch(BROWSER_CONFIG.launch);
     context = await browser.newContext(BROWSER_CONFIG.context);
-    
+
     // Load and inject cookies if available
     if (useCookies) {
       const cookies = loadCookies();
@@ -207,12 +235,12 @@ export async function createStealthBrowser(useCookies = true, usePersistentConte
       }
     }
   }
-  
-  const page = context.pages()[0] || await context.newPage();
-  
+
+  const page = context.pages()[0] || (await context.newPage());
+
   // Inject stealth script
   await page.addInitScript(STEALTH_SCRIPT);
-  
+
   // Add random mouse movements to appear more human
   await page.addInitScript(() => {
     // Simulate realistic mouse movements
@@ -222,15 +250,15 @@ export async function createStealthBrowser(useCookies = true, usePersistentConte
       mouseX = e.clientX;
       mouseY = e.clientY;
     });
-    
+
     // Add slight random delays to actions
     const originalClick = HTMLElement.prototype.click;
-    HTMLElement.prototype.click = function() {
+    HTMLElement.prototype.click = function () {
       const delay = Math.random() * 100 + 50; // 50-150ms delay
       setTimeout(() => originalClick.apply(this), delay);
     };
   });
-  
+
   return { browser, context, page };
 }
 
@@ -241,33 +269,37 @@ export async function createStealthBrowser(useCookies = true, usePersistentConte
  */
 export async function handleCloudflareChallenge(page, timeout = 30000) {
   console.log('🔒 Checking for Cloudflare challenge...');
-  
+
   try {
     // Wait a bit for the page to load
     await page.waitForTimeout(2000);
-    
+
     // Check for Cloudflare challenge indicators
     const isChallenged = await page.evaluate(() => {
-      return document.title.includes('Just a moment') ||
-             document.body.textContent.includes('Checking your browser') ||
-             document.querySelector('#challenge-running') !== null ||
-             document.querySelector('.cf-browser-verification') !== null;
+      return (
+        document.title.includes('Just a moment') ||
+        document.body.textContent.includes('Checking your browser') ||
+        document.querySelector('#challenge-running') !== null ||
+        document.querySelector('.cf-browser-verification') !== null
+      );
     });
-    
+
     if (isChallenged) {
       console.log('⏳ Cloudflare challenge detected. Waiting for it to complete...');
       console.log('   Please complete any manual verification if needed.');
-      
+
       // Wait for the challenge to complete
       await page.waitForFunction(
         () => {
-          return !document.title.includes('Just a moment') &&
-                 !document.body.textContent.includes('Checking your browser') &&
-                 document.querySelector('#challenge-running') === null;
+          return (
+            !document.title.includes('Just a moment') &&
+            !document.body.textContent.includes('Checking your browser') &&
+            document.querySelector('#challenge-running') === null
+          );
         },
         { timeout }
       );
-      
+
       // Give it extra time to fully load
       await page.waitForTimeout(3000);
       console.log('✅ Cloudflare challenge passed!');
@@ -289,23 +321,23 @@ export const PERPLEXITY_API = {
   BASE_URL: 'https://www.perplexity.ai',
   VERSION: '2.18',
   SOURCE: 'default',
-  
+
   // Build API URL with query parameters
   buildUrl(endpoint, params = {}) {
     const url = new URL(`${this.BASE_URL}${endpoint}`);
     url.searchParams.set('version', this.VERSION);
     url.searchParams.set('source', this.SOURCE);
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        value.forEach(v => url.searchParams.append(key, v));
+        value.forEach((v) => url.searchParams.append(key, v));
       } else {
         url.searchParams.set(key, value);
       }
     });
-    
+
     return url.toString();
-  }
+  },
 };
 
 /**
@@ -317,7 +349,7 @@ export const ENDPOINTS = {
   LIST_ALL_THREADS: '/rest/thread/list_ask_threads',
   GET_THREAD: (slug) => `/rest/thread/${slug}`,
   MARK_THREAD_VIEWED: (uuid) => `/rest/thread/mark_viewed/${uuid}`,
-  
+
   // Collections
   LIST_USER_COLLECTIONS: '/rest/collections/list_user_collections',
   LIST_SPACE_TEMPLATES: '/rest/collections/list_space_templates',
@@ -325,5 +357,5 @@ export const ENDPOINTS = {
   GET_COLLECTION: '/rest/collections/get_collection',
   LIST_COLLECTION_THREADS: '/rest/collections/list_collection_threads',
   LIST_COLLECTION_ARTICLES: '/rest/collections/list_collection_articles',
-  COLLECTION_INVITATIONS: '/rest/collections/invitations'
+  COLLECTION_INVITATIONS: '/rest/collections/invitations',
 };

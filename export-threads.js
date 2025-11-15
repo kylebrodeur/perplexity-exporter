@@ -31,11 +31,11 @@ async function exportAllThreads() {
 
   // Step 1: Get list of all threads
   let allThreads = [];
-  
+
   try {
     // Navigate to the library page to trigger the API call
     await page.goto(`${PERPLEXITY_API.BASE_URL}/collections`);
-    
+
     // Wait for network requests to complete
     await page.waitForTimeout(3000);
 
@@ -53,7 +53,6 @@ async function exportAllThreads() {
 
     // Method 2: If we identified the API endpoint, make direct requests
     // This section will be filled in after capturing requests
-    
   } catch (error) {
     console.error('❌ Error fetching threads:', error.message);
   }
@@ -65,22 +64,23 @@ async function exportAllThreads() {
 
   for (let i = 0; i < allThreads.length; i++) {
     const thread = allThreads[i];
-    console.log(`📥 Downloading thread ${i + 1}/${allThreads.length}: ${thread.id || thread.title || 'Unknown'}`);
+    console.log(
+      `📥 Downloading thread ${i + 1}/${allThreads.length}: ${thread.id || thread.title || 'Unknown'}`
+    );
 
     try {
       // TODO: Navigate to thread detail page or make API call
       // This will depend on the API structure we discover
-      
+
       const threadDetail = {
         ...thread,
-        exportedAt: new Date().toISOString()
+        exportedAt: new Date().toISOString(),
       };
 
       exportedThreads.push(threadDetail);
 
       // Be nice to the server
       await page.waitForTimeout(500);
-
     } catch (error) {
       console.error(`   ❌ Error downloading thread: ${error.message}`);
     }
@@ -93,10 +93,7 @@ async function exportAllThreads() {
   }
 
   // Save combined JSON
-  fs.writeFileSync(
-    `${outputDir}/all-threads.json`,
-    JSON.stringify(exportedThreads, null, 2)
-  );
+  fs.writeFileSync(`${outputDir}/all-threads.json`, JSON.stringify(exportedThreads, null, 2));
 
   // Save individual thread files
   exportedThreads.forEach((thread, index) => {

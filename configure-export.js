@@ -3,26 +3,28 @@ import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 function question(query) {
-  return new Promise(resolve => rl.question(query, resolve));
+  return new Promise((resolve) => rl.question(query, resolve));
 }
 
 async function updateExportScript() {
   console.log('🔧 Export Script Configuration Helper\n');
-  console.log('This will help you update export-threads.js with the API endpoints you discovered.\n');
+  console.log(
+    'This will help you update export-threads.js with the API endpoints you discovered.\n'
+  );
 
   // Read analysis if available
   let analysis = null;
   if (fs.existsSync('analysis.json')) {
     analysis = JSON.parse(fs.readFileSync('analysis.json', 'utf-8'));
     console.log('📊 Found analysis.json with recommendations:\n');
-    
+
     analysis.recommendations.forEach((rec, i) => {
       console.log(`${i + 1}. ${rec.type}:`);
-      rec.endpoints.forEach(endpoint => {
+      rec.endpoints.forEach((endpoint) => {
         console.log(`   ${endpoint}`);
       });
     });
@@ -32,37 +34,44 @@ async function updateExportScript() {
   // Get list threads endpoint
   console.log('📝 Step 1: List Threads Endpoint\n');
   const listEndpoint = await question('Enter the LIST THREADS endpoint (e.g., /api/threads): ');
-  const listMethod = await question('HTTP method (default GET): ') || 'GET';
+  const listMethod = (await question('HTTP method (default GET): ')) || 'GET';
 
   // Get thread detail endpoint
   console.log('\n📝 Step 2: Thread Detail Endpoint\n');
   const detailEndpoint = await question('Enter the GET THREAD endpoint (e.g., /api/thread/{id}): ');
-  const detailMethod = await question('HTTP method (default GET): ') || 'GET';
-  const idParam = await question('ID parameter name in URL (e.g., "id", or leave blank if ID goes in path): ') || null;
+  const detailMethod = (await question('HTTP method (default GET): ')) || 'GET';
+  const idParam =
+    (await question(
+      'ID parameter name in URL (e.g., "id", or leave blank if ID goes in path): '
+    )) || null;
 
   // Get sample response for list endpoint
   console.log('\n📝 Step 3: Response Structure\n');
   console.log('Look at captured-responses.json for the list endpoint response.');
-  const threadsKey = await question('What property contains the array of threads? (e.g., "threads", "data", "items"): ');
-  const threadIdKey = await question('What property contains each thread\'s ID? (e.g., "id", "threadId", "uuid"): ');
+  const threadsKey = await question(
+    'What property contains the array of threads? (e.g., "threads", "data", "items"): '
+  );
+  const threadIdKey = await question(
+    'What property contains each thread\'s ID? (e.g., "id", "threadId", "uuid"): '
+  );
 
   // Build configuration
   const config = {
     endpoints: {
       listThreads: {
         path: listEndpoint,
-        method: listMethod
+        method: listMethod,
       },
       getThread: {
         path: detailEndpoint,
         method: detailMethod,
-        idParam: idParam
-      }
+        idParam: idParam,
+      },
     },
     responseStructure: {
       threadsArrayKey: threadsKey,
-      threadIdKey: threadIdKey
-    }
+      threadIdKey: threadIdKey,
+    },
   };
 
   // Save configuration
@@ -75,7 +84,9 @@ async function updateExportScript() {
   const needsHeaders = await question('Do you need to add custom headers? (y/n): ');
 
   if (needsHeaders.toLowerCase() === 'y') {
-    console.log('\nYou\'ll need to manually edit export-threads.js and add headers to AUTH_HEADERS.');
+    console.log(
+      "\nYou'll need to manually edit export-threads.js and add headers to AUTH_HEADERS."
+    );
     console.log('Look for headers in captured-requests.json like:');
     console.log('  - Authorization');
     console.log('  - Cookie');
@@ -84,10 +95,10 @@ async function updateExportScript() {
 
   // Generate updated export script
   console.log('\n🔧 Generating updated export script...\n');
-  
+
   const exportScript = generateExportScript(config);
   fs.writeFileSync('export-threads-configured.js', exportScript);
-  
+
   console.log('✅ Generated export-threads-configured.js\n');
   console.log('📝 Next steps:');
   console.log('   1. Review export-threads-configured.js');

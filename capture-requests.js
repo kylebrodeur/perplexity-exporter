@@ -9,9 +9,9 @@ async function captureRequests() {
   const { browser, page } = await createStealthBrowser();
 
   // Intercept all network requests
-  page.on('request', request => {
+  page.on('request', (request) => {
     const url = request.url();
-    
+
     // Capture API requests to Perplexity
     if (url.includes('perplexity.ai') || url.includes('/api/')) {
       const requestData = {
@@ -19,11 +19,11 @@ async function captureRequests() {
         method: request.method(),
         url: url,
         headers: request.headers(),
-        postData: request.postData()
+        postData: request.postData(),
       };
-      
+
       capturedRequests.push(requestData);
-      
+
       // Log interesting requests in real-time
       if (url.includes('thread') || url.includes('library') || url.includes('chat')) {
         console.log(`\n📡 REQUEST: ${request.method()} ${url}`);
@@ -35,9 +35,9 @@ async function captureRequests() {
   });
 
   // Intercept all network responses
-  page.on('response', async response => {
+  page.on('response', async (response) => {
     const url = response.url();
-    
+
     // Capture API responses from Perplexity
     if (url.includes('perplexity.ai') || url.includes('/api/')) {
       try {
@@ -46,7 +46,7 @@ async function captureRequests() {
           status: response.status(),
           url: url,
           headers: response.headers(),
-          body: null
+          body: null,
         };
 
         // Try to get the response body
@@ -90,7 +90,7 @@ async function captureRequests() {
 
   // Wait for user to perform actions
   // Keep the browser open until manually closed
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     process.on('SIGINT', () => {
       console.log('\n\n📝 Saving captured data...');
       resolve();
@@ -98,30 +98,27 @@ async function captureRequests() {
   });
 
   // Save all captured data
-  fs.writeFileSync(
-    'captured-requests.json',
-    JSON.stringify(capturedRequests, null, 2)
-  );
-  
-  fs.writeFileSync(
-    'captured-responses.json',
-    JSON.stringify(capturedResponses, null, 2)
-  );
+  fs.writeFileSync('captured-requests.json', JSON.stringify(capturedRequests, null, 2));
+
+  fs.writeFileSync('captured-responses.json', JSON.stringify(capturedResponses, null, 2));
 
   console.log(`✅ Saved ${capturedRequests.length} requests to captured-requests.json`);
   console.log(`✅ Saved ${capturedResponses.length} responses to captured-responses.json`);
 
   // Analyze and summarize the captured data
   const apiEndpoints = new Set();
-  capturedRequests.forEach(req => {
+  capturedRequests.forEach((req) => {
     const urlObj = new URL(req.url);
     apiEndpoints.add(`${req.method} ${urlObj.pathname}`);
   });
 
   console.log('\n📊 API Endpoints found:');
   Array.from(apiEndpoints)
-    .filter(endpoint => endpoint.includes('thread') || endpoint.includes('library') || endpoint.includes('chat'))
-    .forEach(endpoint => console.log(`   ${endpoint}`));
+    .filter(
+      (endpoint) =>
+        endpoint.includes('thread') || endpoint.includes('library') || endpoint.includes('chat')
+    )
+    .forEach((endpoint) => console.log(`   ${endpoint}`));
 
   await browser.close();
 }

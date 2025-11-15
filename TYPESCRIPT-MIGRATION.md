@@ -5,6 +5,7 @@ The Perplexity Exporter has been successfully set up with a TypeScript foundatio
 ## What's New
 
 ### TypeScript Infrastructure
+
 - ✅ TypeScript 5.9+ with strict type checking
 - ✅ Modern build pipeline using tsup
 - ✅ ESLint with TypeScript support
@@ -12,6 +13,7 @@ The Perplexity Exporter has been successfully set up with a TypeScript foundatio
 - ✅ Environment configuration via .env files
 
 ### Configuration Files Added
+
 - `tsconfig.json` - TypeScript compiler configuration
 - `tsup.config.ts` - Build configuration
 - `eslint.config.js` - Linting rules (ESLint 9 flat config)
@@ -19,6 +21,7 @@ The Perplexity Exporter has been successfully set up with a TypeScript foundatio
 - `.env.example` - Environment variable template
 
 ### New Scripts
+
 ```bash
 npm run build        # Build TypeScript to JavaScript
 npm run dev          # Build with watch mode
@@ -32,11 +35,13 @@ npm run format:check # Check code formatting
 ## Getting Started with TypeScript
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Build the project:**
+
    ```bash
    npm run build
    ```
@@ -66,6 +71,7 @@ perplexity-exporter/
 ## Migration Status
 
 ### Phase 1: TypeScript Foundation ✅ COMPLETE
+
 - [x] TypeScript & tooling setup
 - [x] tsconfig.json with strict mode
 - [x] Build pipeline with tsup
@@ -74,27 +80,32 @@ perplexity-exporter/
 - [x] Documentation
 
 ### Phase 2: Core Type System (Next)
+
 - [ ] Define interfaces for PerplexityThread, Collection, etc.
 - [ ] Add Zod schemas for runtime validation
 - [ ] Create discriminated unions for API responses
 
 ### Phase 3: API Client Layer
+
 - [ ] Refactor into PerplexityApiClient class
 - [ ] Implement retry logic and rate limiting
 - [ ] Move endpoints to typed constants
 
 ### Phase 4: Browser Automation
+
 - [ ] Create BrowserManager class
 - [ ] Implement CookieManager
 - [ ] Support both Chromium and Firefox
 
 ### Phase 5: Browser-Based Command System
+
 - [ ] Create command modules (ExportCommand, SetupCommand, CaptureCommand)
 - [ ] Each command handles its own browser automation
 - [ ] Build thin CLI wrapper with Commander.js
 - [ ] Add interactive prompts for browser sessions
 
 ### Phase 6: Testing & Error Handling
+
 - [ ] Add Jest configuration
 - [ ] Write unit and integration tests
 - [ ] Custom error classes

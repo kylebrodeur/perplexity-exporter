@@ -5,6 +5,7 @@ Export all your Perplexity chat threads using Playwright to capture and replay A
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 cd perplexity-exporter
 npm install
@@ -20,11 +21,13 @@ npm run capture
 ```
 
 This will:
+
 1. Open a browser window
 2. Navigate to Perplexity
 3. Capture all network requests/responses
 
 **What to do:**
+
 1. Log in to your Perplexity account
 2. Navigate to your threads/library page (usually `/collections` or similar)
 3. Wait for threads to load
@@ -33,6 +36,7 @@ This will:
 6. Press `Ctrl+C` in the terminal when done
 
 The script will save two files:
+
 - `captured-requests.json` - All API requests
 - `captured-responses.json` - All API responses
 
@@ -70,6 +74,7 @@ npm run export
 ```
 
 This will:
+
 1. Open a browser and wait for you to log in
 2. Fetch all threads from the list endpoint
 3. Download each thread's full content
@@ -78,18 +83,21 @@ This will:
 ## Output
 
 Threads will be saved in `exported-threads/`:
+
 - `all-threads.json` - Combined file with all threads
 - `{thread-id}.json` - Individual files for each thread
 
 ## Troubleshooting
 
 If capture isn't working:
+
 - Make sure you're logged in to Perplexity
 - Check browser console for errors (F12)
 - Try scrolling slowly on the threads page
 - Look for XHR/Fetch requests in the Network tab
 
 If export isn't working:
+
 - Verify the API endpoints are correct
 - Check that authentication headers are properly set
 - Ensure the thread data structure matches what you captured

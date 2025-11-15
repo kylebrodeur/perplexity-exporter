@@ -14,31 +14,34 @@ console.log('🔎 Thread-related endpoints:\n');
 
 const threadEndpoints = new Map();
 
-responses.forEach(response => {
+responses.forEach((response) => {
   const url = new URL(response.url);
   const path = url.pathname;
-  
+
   // Look for thread-related paths
-  if (path.includes('thread') || path.includes('library') || 
-      path.includes('chat') || path.includes('collection')) {
-    
+  if (
+    path.includes('thread') ||
+    path.includes('library') ||
+    path.includes('chat') ||
+    path.includes('collection')
+  ) {
     const key = `${path} (${response.status})`;
-    
+
     if (!threadEndpoints.has(key)) {
       threadEndpoints.set(key, {
         path,
         status: response.status,
-        method: requests.find(r => r.url === response.url)?.method || 'GET',
+        method: requests.find((r) => r.url === response.url)?.method || 'GET',
         count: 0,
         hasArrayResponse: false,
         hasObjectResponse: false,
-        sampleBody: null
+        sampleBody: null,
       });
     }
-    
+
     const endpoint = threadEndpoints.get(key);
     endpoint.count++;
-    
+
     if (response.body) {
       if (Array.isArray(response.body)) {
         endpoint.hasArrayResponse = true;
@@ -58,7 +61,7 @@ threadEndpoints.forEach((info, key) => {
   console.log(`\n📍 ${info.method} ${info.path}`);
   console.log(`   Status: ${info.status}`);
   console.log(`   Called: ${info.count} time(s)`);
-  
+
   if (info.hasArrayResponse) {
     console.log(`   ✅ Returns array (likely list endpoint)`);
     if (info.sampleBody) {
@@ -69,13 +72,15 @@ threadEndpoints.forEach((info, key) => {
       }
     }
   }
-  
+
   if (info.hasObjectResponse) {
     console.log(`   ✅ Returns object (likely detail endpoint)`);
     if (info.sampleBody) {
       const keys = Object.keys(info.sampleBody);
-      console.log(`   Response keys: ${keys.slice(0, 10).join(', ')}${keys.length > 10 ? '...' : ''}`);
-      
+      console.log(
+        `   Response keys: ${keys.slice(0, 10).join(', ')}${keys.length > 10 ? '...' : ''}`
+      );
+
       // Look for thread-like properties
       if (info.sampleBody.messages || info.sampleBody.queries) {
         console.log(`   🎯 Likely thread detail endpoint!`);
@@ -91,18 +96,20 @@ threadEndpoints.forEach((info, key) => {
 console.log('\n\n🔐 Authentication headers used:\n');
 
 const authHeaders = new Set();
-requests.forEach(request => {
-  Object.keys(request.headers).forEach(header => {
-    if (header.toLowerCase().includes('auth') || 
-        header.toLowerCase().includes('token') ||
-        header.toLowerCase().includes('cookie') ||
-        header.toLowerCase().startsWith('x-')) {
+requests.forEach((request) => {
+  Object.keys(request.headers).forEach((header) => {
+    if (
+      header.toLowerCase().includes('auth') ||
+      header.toLowerCase().includes('token') ||
+      header.toLowerCase().includes('cookie') ||
+      header.toLowerCase().startsWith('x-')
+    ) {
       authHeaders.add(header);
     }
   });
 });
 
-authHeaders.forEach(header => {
+authHeaders.forEach((header) => {
   console.log(`   ${header}`);
 });
 
@@ -111,40 +118,40 @@ const analysis = {
   summary: {
     totalRequests: requests.length,
     totalResponses: responses.length,
-    threadEndpoints: Array.from(threadEndpoints.entries()).map(([key, value]) => value)
+    threadEndpoints: Array.from(threadEndpoints.entries()).map(([key, value]) => value),
   },
   authHeaders: Array.from(authHeaders),
-  recommendations: []
+  recommendations: [],
 };
 
 // Add recommendations
-const listEndpoints = Array.from(threadEndpoints.values())
-  .filter(e => e.hasArrayResponse);
-const detailEndpoints = Array.from(threadEndpoints.values())
-  .filter(e => e.hasObjectResponse && (e.path.includes('thread/') || e.path.includes('chat/')));
+const listEndpoints = Array.from(threadEndpoints.values()).filter((e) => e.hasArrayResponse);
+const detailEndpoints = Array.from(threadEndpoints.values()).filter(
+  (e) => e.hasObjectResponse && (e.path.includes('thread/') || e.path.includes('chat/'))
+);
 
 if (listEndpoints.length > 0) {
   analysis.recommendations.push({
     type: 'LIST_THREADS',
-    endpoints: listEndpoints.map(e => `${e.method} ${e.path}`),
-    confidence: 'high'
+    endpoints: listEndpoints.map((e) => `${e.method} ${e.path}`),
+    confidence: 'high',
   });
 }
 
 if (detailEndpoints.length > 0) {
   analysis.recommendations.push({
     type: 'GET_THREAD_DETAIL',
-    endpoints: detailEndpoints.map(e => `${e.method} ${e.path}`),
-    confidence: 'high'
+    endpoints: detailEndpoints.map((e) => `${e.method} ${e.path}`),
+    confidence: 'high',
   });
 }
 
 fs.writeFileSync('analysis.json', JSON.stringify(analysis, null, 2));
 
 console.log('\n\n💡 Recommendations:\n');
-analysis.recommendations.forEach(rec => {
+analysis.recommendations.forEach((rec) => {
   console.log(`   ${rec.type}:`);
-  rec.endpoints.forEach(endpoint => {
+  rec.endpoints.forEach((endpoint) => {
     console.log(`      ${endpoint}`);
   });
 });

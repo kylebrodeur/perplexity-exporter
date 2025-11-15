@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { createStealthBrowser, handleCloudflareChallenge, PERPLEXITY_API, ENDPOINTS } from './browser-config-puppeteer.js';
+import {
+  createStealthBrowser,
+  handleCloudflareChallenge,
+  PERPLEXITY_API,
+  ENDPOINTS,
+} from './browser-config-puppeteer.js';
 
 async function exportAll() {
   console.log('🚀 Starting comprehensive Perplexity export (Puppeteer Stealth)...\n');
@@ -33,16 +38,16 @@ async function exportAll() {
   await page.waitForTimeout(5000);
 
   console.log('📊 Fetching threads list...');
-  
+
   try {
     // Navigate to API endpoint to get threads
     const threadsUrl = PERPLEXITY_API.buildUrl(ENDPOINTS.LIST_ALL_THREADS);
     await page.goto(threadsUrl, { waitUntil: 'networkidle2' });
-    
+
     // Get the JSON response
     const threadsContent = await page.content();
     const threadsJson = extractJson(threadsContent);
-    
+
     if (!threadsJson || !threadsJson.data) {
       throw new Error('Failed to fetch threads - may need to log in manually');
     }
@@ -68,7 +73,7 @@ async function exportAll() {
     for (let i = 0; i < threads.length; i++) {
       const thread = threads[i];
       const slug = thread.slug || thread.id;
-      
+
       process.stdout.write(`   [${i + 1}/${threads.length}] ${thread.title || slug}...`);
 
       try {
@@ -81,10 +86,7 @@ async function exportAll() {
         if (detailJson) {
           // Save individual thread file
           const filename = `thread_${slug}.json`;
-          fs.writeFileSync(
-            path.join(threadsDir, filename),
-            JSON.stringify(detailJson, null, 2)
-          );
+          fs.writeFileSync(path.join(threadsDir, filename), JSON.stringify(detailJson, null, 2));
 
           exportedThreads.push({
             slug,
@@ -193,7 +195,6 @@ async function exportAll() {
       console.log(`   • ${exportedCollections.length} collections in collections/`);
       console.log(`   • Summary in export-summary.json\n`);
     }
-
   } catch (error) {
     console.error('\n❌ Export failed:', error.message);
     console.error('   You may need to run setup-browser-puppeteer.js again');
@@ -212,7 +213,7 @@ function extractJson(content) {
     if (preMatch) {
       return JSON.parse(preMatch[1]);
     }
-    
+
     // Try to parse entire content as JSON
     return JSON.parse(content);
   } catch {
@@ -220,7 +221,7 @@ function extractJson(content) {
   }
 }
 
-exportAll().catch(error => {
+exportAll().catch((error) => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });
