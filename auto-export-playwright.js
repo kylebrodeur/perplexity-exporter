@@ -500,198 +500,155 @@ async function autoExportPlaywright() {
 
   if (result.success) {
     
-    // Update browser indicator for saving
+    // Update browser indicator for saving prompt
     await page.evaluate(() => {
       const indicator = document.getElementById('scroll-indicator');
       if (indicator) {
         indicator.style.background = '#8b5cf6';
         indicator.innerHTML = `
-          <div style="font-size: 16px; margin-bottom: 5px;">💾 Saving File</div>
-          <div style="font-size: 13px; opacity: 0.9;">Please wait...</div>
+          <div style="font-size: 16px; margin-bottom: 5px;">💾 Save Location</div>
+          <div style="font-size: 13px; opacity: 0.9;">Enter choice in console...</div>
         `;
       }
     });
     
-    // Ask where to save in browser
-    console.log('\n💾 Saving export...');
+    // Ask where to save in console UI
+    console.log('\n💾 Asking for save location...');
     const saveDir = await page.evaluate(() => {
       return new Promise((resolve) => {
-        // Create modal overlay
-        const overlay = document.createElement('div');
-        overlay.style.cssText = `
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10001;
-          backdrop-filter: blur(5px);
-        `;
+        const consoleContent = document.getElementById('export-console-content');
+        if (!consoleContent) {
+          resolve('current');
+          return;
+        }
         
-        // Create modal
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          padding: 30px;
-          max-width: 500px;
-          width: 90%;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-          color: white;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        `;
-        
-        modal.innerHTML = `
-          <div style="font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center;">
-            💾 Choose Save Location
+        // Add save location prompt to console
+        consoleContent.innerHTML += `
+          <div style="margin-top: 20px; color: #ffaa00; font-weight: bold;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+          <div style="margin-top: 10px; color: #00bfff; font-weight: bold;">💾 Choose Save Location</div>
+          <div style="margin-top: 8px; color: #aaaaaa;">Where would you like to save your Perplexity threads?</div>
+          <div style="margin-top: 12px; color: #aaaaaa;">
+            <div style="margin-bottom: 5px;">  [1] 📁 Current Folder (Default)</div>
+            <div style="margin-bottom: 5px;">  [2] 🏠 Home Folder (~)</div>
+            <div style="margin-bottom: 5px;">  [3] 🖥️  Desktop (~/Desktop)</div>
+            <div style="margin-bottom: 5px;">  [4] ✏️  Custom Path</div>
           </div>
-          <div style="margin-bottom: 20px; opacity: 0.9; text-align: center;">
-            Where would you like to save your Perplexity threads?
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button class="save-option" data-path="current" style="
-              background: rgba(255,255,255,0.2);
-              border: 2px solid rgba(255,255,255,0.3);
-              color: white;
-              padding: 15px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 15px;
-              text-align: left;
-              transition: all 0.2s;
-            ">
-              📁 Current Folder (Default)<br>
-              <span style="font-size: 12px; opacity: 0.8;">${window.location.origin}</span>
-            </button>
-            <button class="save-option" data-path="home" style="
-              background: rgba(255,255,255,0.2);
-              border: 2px solid rgba(255,255,255,0.3);
-              color: white;
-              padding: 15px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 15px;
-              text-align: left;
-              transition: all 0.2s;
-            ">
-              🏠 Home Folder<br>
-              <span style="font-size: 12px; opacity: 0.8;">~</span>
-            </button>
-            <button class="save-option" data-path="desktop" style="
-              background: rgba(255,255,255,0.2);
-              border: 2px solid rgba(255,255,255,0.3);
-              color: white;
-              padding: 15px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 15px;
-              text-align: left;
-              transition: all 0.2s;
-            ">
-              🖥️ Desktop<br>
-              <span style="font-size: 12px; opacity: 0.8;">~/Desktop</span>
-            </button>
-            <button class="save-option" data-path="custom" style="
-              background: rgba(255,255,255,0.2);
-              border: 2px solid rgba(255,255,255,0.3);
-              color: white;
-              padding: 15px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-size: 15px;
-              text-align: left;
-              transition: all 0.2s;
-            ">
-              ✏️ Custom Path<br>
-              <span style="font-size: 12px; opacity: 0.8;">Enter a specific folder path</span>
-            </button>
-          </div>
-          <div id="custom-input" style="display: none; margin-top: 15px;">
-            <input type="text" id="custom-path" placeholder="Enter full path (e.g., /Users/you/Documents)" style="
-              width: 100%;
-              padding: 12px;
-              border: 2px solid rgba(255,255,255,0.3);
-              border-radius: 8px;
-              background: rgba(255,255,255,0.1);
-              color: white;
-              font-size: 14px;
-              box-sizing: border-box;
-            ">
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-              <button id="confirm-custom" style="
-                flex: 1;
-                background: #10b981;
+          <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px;">
+            <span style="color: #00ff00;">$</span>
+            <span style="color: #aaaaaa;">Enter choice [1-4]:</span>
+            <input 
+              type="text" 
+              id="save-choice-input"
+              autocomplete="off"
+              style="
+                background: transparent;
                 border: none;
-                color: white;
-                padding: 10px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: bold;
-              ">Confirm</button>
-              <button id="cancel-custom" style="
-                flex: 1;
-                background: rgba(255,255,255,0.2);
-                border: none;
-                color: white;
-                padding: 10px;
-                border-radius: 6px;
-                cursor: pointer;
-              ">Cancel</button>
+                border-bottom: 2px solid #00ff00;
+                color: #00ff00;
+                font-family: inherit;
+                font-size: inherit;
+                padding: 2px 8px;
+                outline: none;
+                width: 60px;
+                caret-color: #00ff00;
+              "
+            >
+          </div>
+          <div id="custom-path-container" style="display: none; margin-top: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="color: #00ff00;">$</span>
+              <span style="color: #aaaaaa;">Enter path:</span>
+              <input 
+                type="text" 
+                id="custom-path-input"
+                autocomplete="off"
+                placeholder="/path/to/folder"
+                style="
+                  background: transparent;
+                  border: none;
+                  border-bottom: 2px solid #00ff00;
+                  color: #00ff00;
+                  font-family: inherit;
+                  font-size: inherit;
+                  padding: 2px 8px;
+                  outline: none;
+                  flex: 1;
+                  caret-color: #00ff00;
+                "
+              >
             </div>
           </div>
         `;
         
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
+        // Auto-scroll to bottom
+        consoleContent.scrollTop = consoleContent.scrollHeight;
         
-        // Add hover effects
-        const buttons = modal.querySelectorAll('.save-option');
-        buttons.forEach(btn => {
-          btn.addEventListener('mouseenter', () => {
-            btn.style.background = 'rgba(255,255,255,0.3)';
-            btn.style.transform = 'translateY(-2px)';
-          });
-          btn.addEventListener('mouseleave', () => {
-            btn.style.background = 'rgba(255,255,255,0.2)';
-            btn.style.transform = 'translateY(0)';
-          });
-          
-          btn.addEventListener('click', () => {
-            const path = btn.dataset.path;
-            if (path === 'custom') {
-              document.getElementById('custom-input').style.display = 'block';
-              document.getElementById('custom-path').focus();
-            } else {
-              document.body.removeChild(overlay);
-              resolve(path);
-            }
-          });
-        });
+        // Focus the input
+        const choiceInput = document.getElementById('save-choice-input');
+        choiceInput.focus();
         
-        // Handle custom path
-        document.getElementById('confirm-custom').addEventListener('click', () => {
-          const customPath = document.getElementById('custom-path').value.trim();
-          if (customPath) {
-            document.body.removeChild(overlay);
-            resolve(customPath);
-          }
-        });
-        
-        document.getElementById('cancel-custom').addEventListener('click', () => {
-          document.getElementById('custom-input').style.display = 'none';
-        });
-        
-        // Handle Enter key in custom input
-        document.getElementById('custom-path').addEventListener('keypress', (e) => {
+        // Handle choice selection
+        choiceInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {
-            const customPath = e.target.value.trim();
-            if (customPath) {
-              document.body.removeChild(overlay);
-              resolve(customPath);
+            const choice = e.target.value.trim();
+            
+            // Display the chosen option in console
+            const choiceDisplay = document.createElement('div');
+            choiceDisplay.style.color = '#00ff00';
+            choiceDisplay.style.marginTop = '5px';
+            
+            switch(choice) {
+              case '1':
+                choiceDisplay.textContent = '> Selected: Current Folder';
+                consoleContent.appendChild(choiceDisplay);
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+                resolve('current');
+                break;
+              case '2':
+                choiceDisplay.textContent = '> Selected: Home Folder';
+                consoleContent.appendChild(choiceDisplay);
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+                resolve('home');
+                break;
+              case '3':
+                choiceDisplay.textContent = '> Selected: Desktop';
+                consoleContent.appendChild(choiceDisplay);
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+                resolve('desktop');
+                break;
+              case '4':
+                choiceDisplay.textContent = '> Selected: Custom Path';
+                consoleContent.appendChild(choiceDisplay);
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+                
+                // Show custom path input
+                const customContainer = document.getElementById('custom-path-container');
+                customContainer.style.display = 'block';
+                const customInput = document.getElementById('custom-path-input');
+                customInput.focus();
+                
+                // Handle custom path input
+                customInput.addEventListener('keypress', (e2) => {
+                  if (e2.key === 'Enter') {
+                    const customPath = e2.target.value.trim();
+                    if (customPath) {
+                      const pathDisplay = document.createElement('div');
+                      pathDisplay.style.color = '#00ff00';
+                      pathDisplay.style.marginTop = '5px';
+                      pathDisplay.textContent = `> Path: ${customPath}`;
+                      consoleContent.appendChild(pathDisplay);
+                      consoleContent.scrollTop = consoleContent.scrollHeight;
+                      resolve(customPath);
+                    }
+                  }
+                });
+                break;
+              default:
+                choiceDisplay.textContent = '> Invalid choice. Using Current Folder (default)';
+                choiceDisplay.style.color = '#ffaa00';
+                consoleContent.appendChild(choiceDisplay);
+                consoleContent.scrollTop = consoleContent.scrollHeight;
+                resolve('current');
             }
           }
         });
@@ -726,6 +683,18 @@ async function autoExportPlaywright() {
     
     console.log(`\n📝 Writing file...`);
     await fs.writeFile(fullPath, JSON.stringify(result.data, null, 2));
+    
+    // Add save location to console UI
+    await page.evaluate(({ path }) => {
+      const consoleContent = document.getElementById('export-console-content');
+      if (consoleContent) {
+        consoleContent.innerHTML += `
+          <div style="margin-top: 15px; color: #00ff00;">✅ File saved successfully!</div>
+          <div style="margin-top: 5px; color: #aaaaaa;">📁 Location: <span style="color: #00bfff;">${path}</span></div>
+        `;
+        consoleContent.scrollTop = consoleContent.scrollHeight;
+      }
+    }, { path: fullPath });
     
     console.log('\n' + '='.repeat(60));
     console.log('✅ EXPORT COMPLETE!');
