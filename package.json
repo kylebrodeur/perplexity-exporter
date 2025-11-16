@@ -6,10 +6,13 @@
   "main": "dist/cli.js",
   "types": "dist/cli.d.ts",
   "bin": {
-    "perplexity-exporter": "dist/cli.js"
+    "perplexity-exporter": "dist/cli.js",
+    "perplexity-export": "auto-export-playwright.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "auto-export.js",
+    "auto-export-playwright.js"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -21,6 +24,10 @@
     "export": "node export-threads.js",
     "export-all": "node export-all.js",
     "extract-cookies": "node extract-cookies.js",
+    "auto-export": "node auto-export.js",
+    "auto-export-pw": "node auto-export-playwright.js",
+    "playwright": "node auto-export-playwright.js",
+    "codegen": "playwright codegen https://www.perplexity.ai/library",
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
@@ -28,11 +35,13 @@
     "lint": "eslint . --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "commander": "^12.1.0",
     "ora": "^8.1.1",
+    "playwright": "^1.56.1",
     "puppeteer-core": "^24.30.0",
     "zod": "^3.23.8"
   },
@@ -57,5 +66,13 @@
     "cli"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kylebrodeur/perplexity-exporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kylebrodeur/perplexity-exporter/issues"
+  },
+  "homepage": "https://github.com/kylebrodeur/perplexity-exporter#readme"
 }

@@ -4,15 +4,44 @@ Export your Perplexity.ai conversation threads with full details including messa
 
 ## Quick Start
 
-### Option 1: Standalone Script (Simplest)
+### Option 1: Run with npx (No Installation)
 
 ```bash
+npx perplexity-exporter
+```
+
+Or use the shorter alias:
+
+```bash
+npx perplexity-export
+```
+
+### Option 2: Install Globally
+
+```bash
+npm install -g perplexity-exporter
+
+# Then run anytime
+perplexity-export
+```
+
+### Option 3: Clone and Run Locally
+
+```bash
+# Clone the repo
+git clone https://github.com/yourusername/perplexity-exporter.git
+cd perplexity-exporter
+
 # Install dependencies
 npm install
 
 # Run the exporter
 node auto-export.js
+# or
+npm run auto-export
 ```
+
+## How It Works
 
 The script will:
 1. Open Chrome with your persistent browser profile (maintains login session)
@@ -20,31 +49,12 @@ The script will:
 3. Ask you to press ENTER when ready
 4. Automatically inject and run export code in the browser
 5. Fetch full thread details from Perplexity's API
-6. Save timestamped JSON file with all conversation data
-
-### Option 2: TypeScript CLI (Connects to Running Chrome)
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build TypeScript
-npm run build
-
-# 3. Start Chrome with remote debugging (in a separate terminal)
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-
-# 4. Navigate to Perplexity Library in Chrome, log in, and load your threads
-
-# 5. Run the exporter
-node dist/cli.js export
-```
-
-The CLI will:
-1. Connect to your already-running Chrome instance
-2. Wait for you to press ENTER when ready
-3. Inject and execute the export script
-4. Save results to timestamped JSON file
+6. Ask where you want to save the export file:
+   - Current folder
+   - Home folder
+   - Desktop
+   - Custom path
+7. Save timestamped JSON file with all conversation data
 
 ## Features
 
@@ -52,7 +62,8 @@ The CLI will:
 ✅ **Complete Data**: Full conversation history with user/assistant messages  
 ✅ **Rich Metadata**: Includes sources, citations, web results, and media  
 ✅ **No Manual Copy/Paste**: Fully automated after initial navigation  
-✅ **Timestamped Exports**: Each export saved with timestamp
+✅ **Timestamped Exports**: Each export saved with timestamp  
+✅ **Flexible Save Locations**: Choose where to save your exports
 
 ## Output Format
 
@@ -79,11 +90,43 @@ Modern authentication (Google SSO, Cloudflare) effectively blocks browser automa
 ## TypeScript Implementation
 
 A TypeScript CLI implementation is available in `src/` for reference, including:
+
 - Command system with Commander.js
 - Browser automation framework
 - Cookie management utilities
 
 However, the JavaScript `auto-export.js` is the recommended approach due to authentication challenges.
+
+## Publishing to npm
+
+To publish this package to npm:
+
+```bash
+# 1. Build the TypeScript
+npm run build
+
+# 2. Login to npm (if not already)
+npm login
+
+# 3. Publish
+npm publish
+```
+
+To update the version:
+
+```bash
+# Patch version (1.0.0 -> 1.0.1)
+npm version patch
+
+# Minor version (1.0.0 -> 1.1.0)
+npm version minor
+
+# Major version (1.0.0 -> 2.0.0)
+npm version major
+
+# Then publish
+npm publish
+```
 
 ## License
 
