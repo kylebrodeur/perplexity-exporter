@@ -1,348 +1,176 @@
-import fs from 'fs/promises';
-import path from 'path';
-import puppeteer, { type Browser, type Page } from 'puppeteer';
-import puppeteerExtra from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import puppeteer, { type Browser, type Page } from 'puppeteer-core';
+import readline from 'readline';
 import type { BrowserConfig } from '../types/index.js';
-import { CloudflareError, TimeoutError } from '../utils/errors.js';
 import { CookieManager } from './CookieManager.js';
 
-// Add stealth plugin
-puppeteerExtra.use(StealthPlugin());
-
 /**
- * Browser automation manager with stealth capabilities
+ * Browser automation manager - connects to existing Chrome via remote debugging
  *
- * Handles browser lifecycle, stealth configuration, and Cloudflare bypass
+ * Requires Chrome started with: --remote-debugging-port=9222
  */
 export class BrowserManager {
   private browser: Browser | null = null;
   private page: Page | null = null;
   private readonly cookieManager: CookieManager;
+  private readonly debugPort: number;
 
   constructor(
     private readonly config: BrowserConfig,
-    cookieManager?: CookieManager
+    cookieManager?: CookieManager,
+    debugPort: number = 9222
   ) {
     this.cookieManager = cookieManager || new CookieManager();
+    this.debugPort = debugPort;
   }
 
   /**
-   * Initialize browser with stealth configuration
+   * Connect to existing Chrome instance via remote debugging
    */
   async initialize(): Promise<{ browser: Browser; page: Page }> {
     if (this.browser && this.page) {
       return { browser: this.browser, page: this.page };
     }
 
-    const launchOptions = this.buildLaunchOptions();
-
-    // Use puppeteer-extra with stealth plugin for Chromium
-    if (this.config.browserType === 'chromium') {
-      this.browser = await puppeteerExtra.launch(launchOptions);
-    } else {
-      // Firefox would require different setup - for now use chromium
-      this.browser = await puppeteerExtra.launch(launchOptions);
-    }
-
-    const pages = await this.browser.pages();
-    this.page = pages[0] || (await this.browser.newPage());
-
-    await this.configurePageBehavior();
-    await this.loadAndInjectCookies();
-
-    return { browser: this.browser, page: this.page };
-  }
-
-  /**
-   * Check for Cloudflare after navigation/authentication
-   * Should be called manually after user completes signin
-   */
-  async checkCloudflare(): Promise<void> {
-    if (this.config.stealth) {
-      await this.handleCloudflareChallenge(this.config.timeoutMs);
-    }
-  }
-
-  /**
-   * Build Puppeteer launch options from config
-   */
-  private buildLaunchOptions(): Parameters<typeof puppeteer.launch>[0] {
-    const args: string[] = [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-dev-shm-usage',
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process',
-      `--window-size=${this.config.viewport.width},${this.config.viewport.height}`,
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-infobars',
-      '--disable-background-timer-throttling',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-    ];
-
-    const options: Parameters<typeof puppeteer.launch>[0] = {
-      headless: this.config.headless,
-      args,
-      defaultViewport: {
-        width: this.config.viewport.width,
-        height: this.config.viewport.height,
-      },
-    };
-
-    if (this.config.executablePath) {
-      options.executablePath = this.config.executablePath;
-    }
-
-    if (this.config.profilePath) {
-      options.userDataDir = this.config.profilePath;
-    } else {
-      // Use default persistent profile to save login sessions
-      options.userDataDir = path.resolve('./browser-data');
-    }
-
-    return options;
-  }
-
-  /**
-   * Configure page behavior and inject stealth scripts
-   */
-  private async configurePageBehavior(): Promise<void> {
-    if (!this.page) return;
-
-    // Set viewport
-    await this.page.setViewport({
-      width: this.config.viewport.width,
-      height: this.config.viewport.height,
-    });
-
-    // Set user agent
-    if (this.config.userAgent) {
-      await this.page.setUserAgent(this.config.userAgent);
-    }
-
-    // Set extra HTTP headers
-    await this.page.setExtraHTTPHeaders({
-      'Accept-Language': this.config.locale,
-    });
-
-    // Inject stealth scripts
-    await this.injectStealthScripts();
-  }
-
-  /**
-   * Inject stealth scripts to avoid detection
-   */
-  private async injectStealthScripts(): Promise<void> {
-    if (!this.page) return;
-
-    await this.page.evaluateOnNewDocument(() => {
-      /* eslint-disable @typescript-eslint/no-explicit-any, no-undef */
-      // Override webdriver property
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => false,
-      });
-
-      // Mock plugins
-      Object.defineProperty(navigator, 'plugins', {
-        get: () => [
-          { name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'PDF', length: 1 },
-          {
-            name: 'Chrome PDF Viewer',
-            filename: 'internal-pdf-viewer',
-            description: 'PDF',
-            length: 1,
-          },
-        ],
-      });
-
-      // Languages
-      Object.defineProperty(navigator, 'languages', {
-        get: () => ['en-US', 'en'],
-      });
-
-      // Hardware
-      Object.defineProperty(navigator, 'hardwareConcurrency', {
-        get: () => 8,
-      });
-
-      // Add chrome runtime with realistic API surface
-      if (!(window as any).chrome) {
-        (window as any).chrome = {};
-      }
-      (window as any).chrome.runtime = {
-        connect: () => {},
-        sendMessage: () => {},
-        onMessage: {
-          addListener: () => {},
-          removeListener: () => {},
-        },
-      };
-
-      // Mock permissions
-      const originalQuery = window.navigator.permissions.query;
-      window.navigator.permissions.query = (parameters: any) =>
-        parameters.name === 'notifications'
-          ? Promise.resolve({ state: (Notification as any).permission } as PermissionStatus)
-          : originalQuery(parameters);
-
-      // Add realistic screen properties
-      Object.defineProperty(screen, 'availWidth', {
-        get: () => screen.width,
-      });
-      Object.defineProperty(screen, 'availHeight', {
-        get: () => screen.height - 40, // Account for taskbar
-      });
-
-      // Mock device memory
-      Object.defineProperty(navigator, 'deviceMemory', {
-        get: () => 8,
-      });
-
-      // Mock connection
-      Object.defineProperty(navigator, 'connection', {
-        get: () => ({
-          effectiveType: '4g',
-          rtt: 50,
-          downlink: 10,
-          saveData: false,
-        }),
-      });
-      /* eslint-enable @typescript-eslint/no-explicit-any, no-undef */
-    });
-  }
-
-  /**
-   * Load and inject cookies if available
-   */
-  private async loadAndInjectCookies(): Promise<void> {
-    if (!this.page) return;
-
     try {
-      const cookies = await this.cookieManager.loadCookies();
-      if (cookies && cookies.length > 0) {
-        console.log(`🍪 Loading ${cookies.length} cookies`);
-        await this.cookieManager.injectIntoPage(this.page, cookies);
-      }
-    } catch (error) {
-      console.warn('⚠️  Could not load cookies:', error);
-    }
-  }
+      const browserURL = `http://127.0.0.1:${this.debugPort}`;
+      console.log(`🔌 Connecting to Chrome at ${browserURL}...`);
 
-  /**
-   * Handle Cloudflare challenge if present
-   */
-  async handleCloudflareChallenge(timeout: number = 30000): Promise<void> {
-    if (!this.page) {
-      throw new Error('Page not initialized');
-    }
-
-    console.log('🔍 Checking for Cloudflare challenge...');
-
-    try {
-      // Wait for page to fully load
-      await new Promise((resolve) => globalThis.setTimeout(resolve, 2000));
-
-      /* eslint-disable @typescript-eslint/no-explicit-any, no-undef */
-      const isChallenged = await this.page.evaluate(() => {
-        const text = document.body.textContent || '';
-        return (
-          text.includes('Verify you are human') ||
-          text.includes('Just a moment') ||
-          text.includes('Checking your browser') ||
-          document.querySelector('#challenge-running') !== null ||
-          document.querySelector('.cf-browser-verification') !== null
-        );
+      this.browser = await puppeteer.connect({
+        browserURL,
+        defaultViewport: null, // Use browser's viewport
       });
 
-      if (isChallenged) {
-        console.log('⏳ Cloudflare challenge detected - waiting for completion...');
-        console.log(
-          '   This may take 10-30 seconds. Please complete any manual verification if needed.'
-        );
-
-        await this.page.waitForFunction(
-          () => {
-            const text = document.body.textContent || '';
-            return (
-              !text.includes('Verify you are human') &&
-              !text.includes('Just a moment') &&
-              !text.includes('Checking your browser') &&
-              document.querySelector('#challenge-running') === null
-            );
-          },
-          { timeout }
-        );
-        /* eslint-enable @typescript-eslint/no-explicit-any, no-undef */
-
-        await new Promise((resolve) => globalThis.setTimeout(resolve, 3000));
-        console.log('✅ Cloudflare challenge passed!');
+      // Get active page or create new one
+      const pages = await this.browser.pages();
+      if (pages.length > 0) {
+        this.page = pages[0];
+        console.log('✅ Connected to existing tab');
       } else {
-        console.log('✅ No Cloudflare challenge detected');
+        this.page = await this.browser.newPage();
+        console.log('✅ Created new tab');
       }
+
+      return { browser: this.browser, page: this.page };
     } catch (error) {
-      if (error instanceof Error && error.name === 'TimeoutError') {
-        throw new TimeoutError('Cloudflare challenge timeout', error);
-      }
-      throw new CloudflareError('Failed to handle Cloudflare challenge', error);
+      const errorMessage =
+        '❌ Failed to connect to Chrome.\n\n' +
+        '   Please start Chrome with remote debugging enabled:\n\n' +
+        '   /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --remote-debugging-port=9222\n\n' +
+        `   Error: ${error instanceof Error ? error.message : String(error)}`;
+
+      throw new Error(errorMessage);
     }
   }
 
   /**
-   * Add random human-like delay
+   * Inject and execute export script in the browser
    */
-  private async randomDelay(minMs: number, maxMs: number): Promise<void> {
-    const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
-    await new Promise((resolve) => globalThis.setTimeout(resolve, delay));
-  }
-
-  /**
-   * Navigate to URL with automatic Cloudflare handling
-   */
-  async goto(url: string, options?: { waitUntil?: 'load' | 'networkidle2' }): Promise<void> {
+  async injectExportScript(): Promise<{
+    success: boolean;
+    log: string[];
+    data?: unknown[];
+    count?: number;
+    error?: string;
+  }> {
     if (!this.page) {
       throw new Error('Page not initialized');
     }
 
-    // Add small random delay before navigation to seem more human
-    await this.randomDelay(500, 1500);
+    console.log('💉 Injecting export script into page...');
 
-    await this.page.goto(url, {
-      waitUntil: options?.waitUntil || 'networkidle2',
-      timeout: this.config.timeoutMs,
+    const result = await this.page.evaluate(async () => {
+      const log: string[] = [];
+
+      // Get all thread links from the page
+      const threadElements = document.querySelectorAll('a[href*="/search/"]');
+      const threads: Array<{ id: string; title: string; url: string; slug: string }> = [];
+
+      threadElements.forEach((el) => {
+        const href = (el as HTMLAnchorElement).href;
+        const title =
+          (el as HTMLElement).textContent?.trim() || el.getAttribute('aria-label') || '';
+
+        if (href && title && href.includes('/search/')) {
+          const match = href.match(/\/search\/([^/?]+)/);
+          if (match && match[1]) {
+            threads.push({
+              id: match[1],
+              title: title,
+              url: href,
+              slug: match[1],
+            });
+          }
+        }
+      });
+
+      // Remove duplicates
+      const uniqueThreads = [...new Map(threads.map((t) => [t.id, t])).values()];
+
+      log.push(`Found ${uniqueThreads.length} threads`);
+
+      if (uniqueThreads.length === 0) {
+        return { success: false, log, error: 'No threads found' };
+      }
+
+      // Fetch details for each thread
+      const detailedThreads: unknown[] = [];
+
+      for (let i = 0; i < uniqueThreads.length; i++) {
+        const thread = uniqueThreads[i];
+        if (!thread) continue;
+
+        log.push(`[${i + 1}/${uniqueThreads.length}] ${thread.title}`);
+
+        try {
+          const response = await fetch(`https://www.perplexity.ai/rest/thread/${thread.slug}`);
+          if (response.ok) {
+            const data = await response.json();
+            detailedThreads.push(data);
+            log.push(`  ✅ ${(data as { messages?: unknown[] }).messages?.length || 0} messages`);
+          } else {
+            log.push(`  ⚠️ Failed (${response.status})`);
+            detailedThreads.push(thread);
+          }
+
+          // Small delay between requests
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } catch (error) {
+          log.push(`  ❌ Error: ${(error as Error).message}`);
+          detailedThreads.push(thread);
+        }
+      }
+
+      return {
+        success: true,
+        log,
+        data: detailedThreads,
+        count: detailedThreads.length,
+      };
     });
 
-    // Wait a bit for the page to settle
-    await this.randomDelay(1000, 2000);
-
-    // Simulate human mouse movement
-    if (this.config.stealth) {
-      await this.simulateHumanActivity();
-    }
-
-    // Note: Cloudflare check moved to after cookie loading
-    // Call handleCloudflareChallenge manually if needed
+    return result;
   }
 
   /**
-   * Simulate human-like activity (mouse movement)
+   * Wait for user to navigate and load threads
    */
-  private async simulateHumanActivity(): Promise<void> {
-    if (!this.page) return;
+  async waitForUserReady(): Promise<void> {
+    console.log('\n📋 Instructions:');
+    console.log('   1. Navigate to your Perplexity Library/Threads page');
+    console.log('   2. Scroll to load all threads');
+    console.log('   3. Press ENTER here when ready\n');
 
-    try {
-      // Move mouse in a natural pattern
-      const viewport = this.page.viewport();
-      if (viewport) {
-        const x = Math.floor(Math.random() * viewport.width);
-        const y = Math.floor(Math.random() * viewport.height);
-        await this.page.mouse.move(x, y);
-        await this.randomDelay(100, 300);
-      }
-    } catch {
-      // Ignore mouse movement errors
-    }
+    return new Promise((resolve) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      rl.question('Press ENTER when ready... ', () => {
+        rl.close();
+        resolve();
+      });
+    });
   }
 
   /**
@@ -360,28 +188,14 @@ export class BrowserManager {
   }
 
   /**
-   * Get the cookie manager
-   */
-  getCookieManager(): CookieManager {
-    return this.cookieManager;
-  }
-
-  /**
-   * Close browser
+   * Close browser connection (doesn't close the actual browser)
    */
   async close(): Promise<void> {
     if (this.browser) {
-      await this.browser.close();
+      this.browser.disconnect();
       this.browser = null;
       this.page = null;
+      console.log('✅ Disconnected from Chrome');
     }
-  }
-
-  /**
-   * Create persistent browser profile directory
-   */
-  static async ensureProfileDirectory(profilePath: string): Promise<void> {
-    const resolved = path.resolve(profilePath);
-    await fs.mkdir(resolved, { recursive: true });
   }
 }

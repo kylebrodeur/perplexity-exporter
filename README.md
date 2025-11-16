@@ -4,6 +4,8 @@ Export your Perplexity.ai conversation threads with full details including messa
 
 ## Quick Start
 
+### Option 1: Standalone Script (Simplest)
+
 ```bash
 # Install dependencies
 npm install
@@ -12,14 +14,37 @@ npm install
 node auto-export.js
 ```
 
-## How It Works
+The script will:
+1. Open Chrome with your persistent browser profile (maintains login session)
+2. Wait for you to navigate to Perplexity Library and load your threads
+3. Ask you to press ENTER when ready
+4. Automatically inject and run export code in the browser
+5. Fetch full thread details from Perplexity's API
+6. Save timestamped JSON file with all conversation data
 
-1. Opens Chrome with your persistent browser profile (maintains login session)
-2. You navigate to Perplexity Library and load your threads
-3. Press ENTER when ready
-4. Script automatically injects and runs export code in the browser
-5. Fetches full thread details from Perplexity's API
-6. Saves timestamped JSON file with all conversation data
+### Option 2: TypeScript CLI (Connects to Running Chrome)
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build TypeScript
+npm run build
+
+# 3. Start Chrome with remote debugging (in a separate terminal)
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+# 4. Navigate to Perplexity Library in Chrome, log in, and load your threads
+
+# 5. Run the exporter
+node dist/cli.js export
+```
+
+The CLI will:
+1. Connect to your already-running Chrome instance
+2. Wait for you to press ENTER when ready
+3. Inject and execute the export script
+4. Save results to timestamped JSON file
 
 ## Features
 
