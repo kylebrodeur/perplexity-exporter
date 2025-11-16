@@ -55,6 +55,16 @@ export class BrowserManager {
   }
 
   /**
+   * Check for Cloudflare after navigation/authentication
+   * Should be called manually after user completes signin
+   */
+  async checkCloudflare(): Promise<void> {
+    if (this.config.stealth) {
+      await this.handleCloudflareChallenge(this.config.timeoutMs);
+    }
+  }
+
+  /**
    * Build Puppeteer launch options from config
    */
   private buildLaunchOptions(): Parameters<typeof puppeteer.launch>[0] {
@@ -87,6 +97,9 @@ export class BrowserManager {
 
     if (this.config.profilePath) {
       options.userDataDir = this.config.profilePath;
+    } else {
+      // Use default persistent profile to save login sessions
+      options.userDataDir = path.resolve('./browser-data');
     }
 
     return options;
@@ -125,7 +138,7 @@ export class BrowserManager {
     if (!this.page) return;
 
     await this.page.evaluateOnNewDocument(() => {
-      /* eslint-disable @typescript-eslint/no-explicit-any */
+      /* eslint-disable @typescript-eslint/no-explicit-any, no-undef */
       // Override webdriver property
       Object.defineProperty(navigator, 'webdriver', {
         get: () => false,
@@ -154,11 +167,18 @@ export class BrowserManager {
         get: () => 8,
       });
 
-      // Add chrome runtime
+      // Add chrome runtime with realistic API surface
       if (!(window as any).chrome) {
         (window as any).chrome = {};
       }
-      (window as any).chrome.runtime = {};
+      (window as any).chrome.runtime = {
+        connect: () => {},
+        sendMessage: () => {},
+        onMessage: {
+          addListener: () => {},
+          removeListener: () => {},
+        },
+      };
 
       // Mock permissions
       const originalQuery = window.navigator.permissions.query;
@@ -166,7 +186,30 @@ export class BrowserManager {
         parameters.name === 'notifications'
           ? Promise.resolve({ state: (Notification as any).permission } as PermissionStatus)
           : originalQuery(parameters);
-      /* eslint-enable @typescript-eslint/no-explicit-any */
+
+      // Add realistic screen properties
+      Object.defineProperty(screen, 'availWidth', {
+        get: () => screen.width,
+      });
+      Object.defineProperty(screen, 'availHeight', {
+        get: () => screen.height - 40, // Account for taskbar
+      });
+
+      // Mock device memory
+      Object.defineProperty(navigator, 'deviceMemory', {
+        get: () => 8,
+      });
+
+      // Mock connection
+      Object.defineProperty(navigator, 'connection', {
+        get: () => ({
+          effectiveType: '4g',
+          rtt: 50,
+          downlink: 10,
+          saveData: false,
+        }),
+      });
+      /* eslint-enable @typescript-eslint/no-explicit-any, no-undef */
     });
   }
 
@@ -198,12 +241,16 @@ export class BrowserManager {
     console.log('🔍 Checking for Cloudflare challenge...');
 
     try {
+      // Wait for page to fully load
       await new Promise((resolve) => globalThis.setTimeout(resolve, 2000));
 
+      /* eslint-disable @typescript-eslint/no-explicit-any, no-undef */
       const isChallenged = await this.page.evaluate(() => {
+        const text = document.body.textContent || '';
         return (
-          document.title.includes('Just a moment') ||
-          document.body.textContent?.includes('Checking your browser') ||
+          text.includes('Verify you are human') ||
+          text.includes('Just a moment') ||
+          text.includes('Checking your browser') ||
           document.querySelector('#challenge-running') !== null ||
           document.querySelector('.cf-browser-verification') !== null
         );
@@ -211,17 +258,23 @@ export class BrowserManager {
 
       if (isChallenged) {
         console.log('⏳ Cloudflare challenge detected - waiting for completion...');
+        console.log(
+          '   This may take 10-30 seconds. Please complete any manual verification if needed.'
+        );
 
         await this.page.waitForFunction(
           () => {
+            const text = document.body.textContent || '';
             return (
-              !document.title.includes('Just a moment') &&
-              !document.body.textContent?.includes('Checking your browser') &&
+              !text.includes('Verify you are human') &&
+              !text.includes('Just a moment') &&
+              !text.includes('Checking your browser') &&
               document.querySelector('#challenge-running') === null
             );
           },
           { timeout }
         );
+        /* eslint-enable @typescript-eslint/no-explicit-any, no-undef */
 
         await new Promise((resolve) => globalThis.setTimeout(resolve, 3000));
         console.log('✅ Cloudflare challenge passed!');
@@ -237,6 +290,14 @@ export class BrowserManager {
   }
 
   /**
+   * Add random human-like delay
+   */
+  private async randomDelay(minMs: number, maxMs: number): Promise<void> {
+    const delay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+    await new Promise((resolve) => globalThis.setTimeout(resolve, delay));
+  }
+
+  /**
    * Navigate to URL with automatic Cloudflare handling
    */
   async goto(url: string, options?: { waitUntil?: 'load' | 'networkidle2' }): Promise<void> {
@@ -244,14 +305,43 @@ export class BrowserManager {
       throw new Error('Page not initialized');
     }
 
+    // Add small random delay before navigation to seem more human
+    await this.randomDelay(500, 1500);
+
     await this.page.goto(url, {
       waitUntil: options?.waitUntil || 'networkidle2',
       timeout: this.config.timeoutMs,
     });
 
-    // Automatically check for Cloudflare
+    // Wait a bit for the page to settle
+    await this.randomDelay(1000, 2000);
+
+    // Simulate human mouse movement
     if (this.config.stealth) {
-      await this.handleCloudflareChallenge(this.config.timeoutMs);
+      await this.simulateHumanActivity();
+    }
+
+    // Note: Cloudflare check moved to after cookie loading
+    // Call handleCloudflareChallenge manually if needed
+  }
+
+  /**
+   * Simulate human-like activity (mouse movement)
+   */
+  private async simulateHumanActivity(): Promise<void> {
+    if (!this.page) return;
+
+    try {
+      // Move mouse in a natural pattern
+      const viewport = this.page.viewport();
+      if (viewport) {
+        const x = Math.floor(Math.random() * viewport.width);
+        const y = Math.floor(Math.random() * viewport.height);
+        await this.page.mouse.move(x, y);
+        await this.randomDelay(100, 300);
+      }
+    } catch {
+      // Ignore mouse movement errors
     }
   }
 

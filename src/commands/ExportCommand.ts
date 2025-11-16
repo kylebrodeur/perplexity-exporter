@@ -19,9 +19,14 @@ export class ExportCommand extends BaseCommand {
         throw new Error('Browser not initialized');
       }
 
-      // Navigate to Perplexity
+      // Navigate to Perplexity homepage first to establish session
       spinner.start('Opening Perplexity...');
       await this.browserManager.goto('https://www.perplexity.ai');
+      spinner.succeed('Opened Perplexity');
+      
+      // Wait longer for session to fully establish with cookies
+      spinner.start('Establishing session...');
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 10000));
       spinner.succeed('Connected to Perplexity');
 
       // Export threads

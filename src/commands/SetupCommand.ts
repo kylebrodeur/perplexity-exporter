@@ -24,8 +24,9 @@ export class SetupCommand extends BaseCommand {
 
       // Wait for user to log in
       console.log('\n🔐 Please complete the following steps in the browser:');
-      console.log('   1. Log in to Perplexity');
-      console.log('   2. Complete any Cloudflare challenges');
+      console.log('   1. Log in to Perplexity (Google signin works)');
+      console.log('   2. Complete any Cloudflare "Verify you are human" challenges');
+      console.log('      (These may appear AFTER signin - complete them if shown)');
       console.log('   3. Verify you can see your threads/collections');
       console.log('   4. Press ENTER here when ready to continue\n');
 

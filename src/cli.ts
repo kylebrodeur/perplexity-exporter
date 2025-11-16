@@ -29,6 +29,7 @@ program
     const browserConfig: BrowserConfig = {
       browserType: options.browser,
       headless: options.headless,
+      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       viewport: { width: 1280, height: 720 },
       locale: 'en-US',
       timeoutMs: 60000,
@@ -75,6 +76,7 @@ program
     const browserConfig: BrowserConfig = {
       browserType: 'chromium',
       headless: options.headless,
+      executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       viewport: { width: 1280, height: 720 },
       locale: 'en-US',
       timeoutMs: 60000,
