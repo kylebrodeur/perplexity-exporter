@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const THREAD_VISIBILITY = ['private', 'unlisted', 'public'] as const;
 const MESSAGE_ORIGIN = ['web', 'mobile', 'api'] as const;
-const MESSAGE_ROLE = ['system', 'user', 'assistant'] as const;
+const STEP_TYPE = ['INITIAL_QUERY', 'FINAL', 'SEARCH', 'REWRITE'] as const;
 const ATTACHMENT_KIND = ['image', 'file', 'link', 'raw', 'unknown'] as const;
 
 export const ThreadVisibilitySchema = z.enum(THREAD_VISIBILITY);
@@ -11,8 +11,8 @@ export type ThreadVisibility = z.infer<typeof ThreadVisibilitySchema>;
 export const MessageOriginSchema = z.enum(MESSAGE_ORIGIN);
 export type MessageOrigin = z.infer<typeof MessageOriginSchema>;
 
-export const MessageRoleSchema = z.enum(MESSAGE_ROLE);
-export type MessageRole = z.infer<typeof MessageRoleSchema>;
+export const StepTypeSchema = z.enum(STEP_TYPE);
+export type StepType = z.infer<typeof StepTypeSchema>;
 
 export const CitationSchema = z.object({
   id: z.string().optional(),
@@ -34,18 +34,15 @@ export const MessageAttachmentSchema = z.object({
 });
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
-export const PerplexityMessageSchema = z.object({
-  id: z.string(),
-  role: MessageRoleSchema,
-  origin: MessageOriginSchema.optional(),
-  content: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime().optional(),
-  citations: z.array(CitationSchema).optional(),
+export const ThreadStepSchema = z.object({
+  step_type: StepTypeSchema,
+  query_str: z.string().optional(),
+  final_response: z.string().optional(),
+  search_results: z.array(CitationSchema).optional(),
   attachments: z.array(MessageAttachmentSchema).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
-export type PerplexityMessage = z.infer<typeof PerplexityMessageSchema>;
+export type ThreadStep = z.infer<typeof ThreadStepSchema>;
 
 export const CollectionSchema = z.object({
   id: z.string(),
@@ -63,17 +60,18 @@ export const CollectionSchema = z.object({
 export type Collection = z.infer<typeof CollectionSchema>;
 
 export const PerplexityThreadSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   title: z.string(),
+  slug: z.string().optional(),
   summary: z.string().optional(),
   visibility: ThreadVisibilitySchema.default('private'),
   origin: MessageOriginSchema.optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  messageCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+  stepCount: z.number().int().nonnegative().optional(),
   tags: z.array(z.string()).optional(),
   collectionIds: z.array(z.string()).optional(),
-  messages: z.array(PerplexityMessageSchema),
+  steps: z.array(ThreadStepSchema),
   metadata: z.record(z.unknown()).optional(),
 });
 export type PerplexityThread = z.infer<typeof PerplexityThreadSchema>;
