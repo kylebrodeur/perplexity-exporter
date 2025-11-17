@@ -81,7 +81,7 @@ async function runExport(context: BrowserContext): Promise<void> {
   // Wait for thread links to appear
   try {
     await page.waitForSelector('a[href*="/search/"]', { timeout: 10000 });
-  } catch (e) {
+  } catch {
     console.log('⚠️  No threads found or page not loaded properly');
   }
 
@@ -138,6 +138,7 @@ async function runExport(context: BrowserContext): Promise<void> {
 
 async function addVisualIndicators(page: Page): Promise<void> {
   await page.evaluate(() => {
+    /* eslint-disable no-undef */
     const indicator = document.createElement('div');
     indicator.id = 'scroll-indicator';
     indicator.style.cssText = `
@@ -174,6 +175,7 @@ async function autoScrollThreads(page: Page): Promise<void> {
 
   while (scrollAttempts < maxScrollAttempts) {
     const scrollInfo = await page.evaluate(() => {
+      /* eslint-disable no-undef */
       const scrollContainer = document.querySelector('.scrollable-container');
       const allThreads = document.querySelectorAll('a[href*="/search/"]');
       const uniqueLinks = new Set<string>();
@@ -229,6 +231,7 @@ async function autoScrollThreads(page: Page): Promise<void> {
     }
 
     await page.evaluate(() => {
+      /* eslint-disable no-undef */
       const scrollContainer = document.querySelector('.scrollable-container');
       if (scrollContainer) {
         (scrollContainer as HTMLElement).style.outline = '3px solid #fbbf24';
@@ -253,6 +256,7 @@ async function autoScrollThreads(page: Page): Promise<void> {
   }
 
   await page.evaluate(() => {
+    /* eslint-disable no-undef */
     const indicator = document.getElementById('scroll-indicator');
     if (indicator) {
       indicator.style.background = '#10b981';
@@ -271,6 +275,7 @@ async function autoScrollThreads(page: Page): Promise<void> {
 
 async function injectAndExportThreads(page: Page): Promise<ExportResult> {
   await page.evaluate(() => {
+    /* eslint-disable no-undef */
     const indicator = document.getElementById('scroll-indicator');
     if (indicator) {
       indicator.style.background = '#f59e0b';
@@ -360,6 +365,7 @@ async function injectAndExportThreads(page: Page): Promise<ExportResult> {
   });
 
   const result = await page.evaluate(async () => {
+    /* eslint-disable no-undef */
     const log: string[] = [];
 
     const addToConsole = (message: string, color = '#00ff00') => {
@@ -589,6 +595,7 @@ async function promptSaveLocation(page: Page): Promise<string> {
   console.log('\n💾 Asking for save location...');
 
   const saveDir = await page.evaluate(() => {
+    /* eslint-disable no-undef */
     return new Promise<string>((resolve) => {
       // Helper function to create or get console (same as injectAndExportThreads)
       const ensureConsole = () => {
@@ -763,7 +770,7 @@ async function promptSaveLocation(page: Page): Promise<string> {
               consoleContent.scrollTop = consoleContent.scrollHeight;
               resolve('desktop');
               break;
-            case '4':
+            case '4': {
               choiceDisplay.textContent = '> Selected: Custom Path';
               consoleContent.appendChild(choiceDisplay);
               consoleContent.scrollTop = consoleContent.scrollHeight;
@@ -792,6 +799,7 @@ async function promptSaveLocation(page: Page): Promise<string> {
                 });
               }
               break;
+            }
             default:
               choiceDisplay.textContent = '> Invalid choice. Using Current Folder (default)';
               choiceDisplay.style.color = '#ffaa00';
@@ -823,6 +831,7 @@ function resolveSavePath(saveDir: string): string {
 async function updateSaveStatus(page: Page, fullPath: string): Promise<void> {
   await page.evaluate(
     ({ path }) => {
+      /* eslint-disable no-undef */
       const consoleContent = document.getElementById('export-console-content');
       if (consoleContent) {
         consoleContent.innerHTML += `
