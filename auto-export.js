@@ -113,6 +113,9 @@ async function autoInjectExport() {
           const steps = data.steps?.length || 0;
           console.log(`          ✅ ${steps} steps downloaded`);
           log.push(`  ✅ ${steps} steps`);
+          if (steps === 0) {
+            console.warn(`          ⚠️  Warning: Thread has no steps!`);
+          }
           successCount++;
         } else {
           console.log(`          ⚠️  Failed (HTTP ${response.status})`);
@@ -150,7 +153,11 @@ async function autoInjectExport() {
   console.log(`   Total threads: ${result.count}`);
   console.log(`   ✅ Successfully exported: ${result.successCount}`);
   console.log(`   ❌ Failed: ${result.errorCount}`);
-  console.log(`   📝 With full details: ${result.data.filter(t => t.steps).length}`);
+  const withSteps = result.data.filter(t => t.steps && t.steps.length > 0).length;
+  console.log(`   📝 With steps: ${withSteps}`);
+  if (withSteps < result.successCount) {
+    console.log(`   ⚠️  Missing steps: ${result.successCount - withSteps} threads have no steps!`);
+  }
   console.log('='.repeat(60));
 
   if (result.success) {

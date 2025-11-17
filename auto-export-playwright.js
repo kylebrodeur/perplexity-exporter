@@ -412,29 +412,25 @@ async function autoExportPlaywright() {
       updateIndicator(i + 1, uniqueThreads.length, thread.title, 'downloading');
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure UI updates
       
-      try {
-        const response = await fetch(`https://www.perplexity.ai/rest/thread/${thread.slug}`);
-        if (response.ok) {
-          const data = await response.json();
-          detailedThreads.push(data);
-          
-          // Debug: log the structure to see what we're getting
-          const steps = data.steps?.length || 0;
-          const hasMessages = data.messages?.length || 0;
-          const keys = Object.keys(data).join(', ');
-          
-          console.log(`          ✅ ${steps} steps downloaded (keys: ${keys})`);
-          log.push(`  ✅ ${steps} steps`);
-          
-          if (steps === 0 && hasMessages > 0) {
-            addToConsole(`          ✅ ${hasMessages} messages (data has 'messages' not 'steps')`, '#ffaa00');
-          } else if (steps > 0) {
-            addToConsole(`          ✅ ${steps} steps downloaded`, '#00ff00');
-          } else {
-            addToConsole(`          ⚠️  No steps or messages found. Keys: ${keys}`, '#ffaa00');
-          }
-          
-          successCount++;
+        try {
+          const response = await fetch(`https://www.perplexity.ai/rest/thread/${thread.slug}`);
+          if (response.ok) {
+            const data = await response.json();
+            detailedThreads.push(data);
+            
+            // Check for steps array (confirmed API field)
+            const steps = data.steps?.length || 0;
+            
+            console.log(`          ✅ ${steps} steps downloaded`);
+            log.push(`  ✅ ${steps} steps`);
+            
+            if (steps > 0) {
+              addToConsole(`          ✅ ${steps} steps downloaded`, '#00ff00');
+            } else {
+              const keys = Object.keys(data).join(', ');
+              addToConsole(`          ⚠️  No steps found! Keys: ${keys}`, '#ff4444');
+              console.warn(`          Warning: Thread has no steps. Response keys: ${keys}`);
+            }          successCount++;
           updateIndicator(i + 1, uniqueThreads.length, thread.title, 'success');
           await new Promise(resolve => setTimeout(resolve, 150)); // Show success state
         } else {
@@ -495,7 +491,11 @@ async function autoExportPlaywright() {
   console.log(`   Total threads: ${result.count}`);
   console.log(`   ✅ Successfully exported: ${result.successCount}`);
   console.log(`   ❌ Failed: ${result.errorCount}`);
-  console.log(`   📝 With full details: ${result.data.filter(t => t.steps).length}`);
+  const withSteps = result.data.filter(t => t.steps && t.steps.length > 0).length;
+  console.log(`   📝 With steps: ${withSteps}`);
+  if (withSteps < result.successCount) {
+    console.log(`   ⚠️  Missing steps: ${result.successCount - withSteps} threads have no steps!`);
+  }
   console.log('='.repeat(60));
 
   if (result.success) {
