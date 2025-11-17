@@ -1,49 +1,33 @@
 {
   "name": "perplexity-exporter",
-  "version": "1.0.0",
-  "description": "Export all threads from Perplexity",
+  "version": "2.0.0",
+  "description": "Export all threads from Perplexity.ai with full conversation history",
   "type": "module",
-  "main": "dist/cli.js",
-  "types": "dist/cli.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "perplexity-exporter": "dist/cli.js",
-    "perplexity-export": "auto-export-playwright.js"
+    "perplexity-exporter": "dist/index.js",
+    "perplexity-export": "dist/index.js"
   },
   "files": [
-    "dist",
-    "auto-export.js",
-    "auto-export-playwright.js"
+    "dist"
   ],
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "capture": "node capture-requests.js",
-    "analyze": "node analyze-capture.js",
-    "configure": "node configure-export.js",
-    "export": "node export-threads.js",
-    "export-all": "node export-all.js",
-    "extract-cookies": "node extract-cookies.js",
-    "auto-export": "node auto-export.js",
-    "auto-export-pw": "node auto-export-playwright.js",
-    "playwright": "node auto-export-playwright.js",
-    "codegen": "playwright codegen https://www.perplexity.ai/library",
+    "start": "node dist/index.js",
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.js",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "commander": "^12.1.0",
-    "ora": "^8.1.1",
-    "playwright": "^1.56.1",
-    "puppeteer-core": "^24.30.0",
-    "zod": "^3.23.8"
+    "playwright": "^1.56.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

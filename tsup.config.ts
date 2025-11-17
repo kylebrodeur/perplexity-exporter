@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/cli.ts'],
+  entry: ['src/index.ts'],
   format: ['esm'],
   target: 'node18',
   outDir: 'dist',
@@ -12,5 +12,8 @@ export default defineConfig({
   treeshake: true,
   minify: false,
   platform: 'node',
-  external: ['playwright', 'puppeteer', 'puppeteer-extra', 'puppeteer-extra-plugin-stealth'],
+  external: ['playwright'],
+  banner: {
+    js: '#!/usr/bin/env node',
+  },
 });
