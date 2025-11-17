@@ -1,0 +1,5 @@
+modal>=0.64.0
+playwright>=1.48.0
+requests>=2.32.0
+aiohttp>=3.10.0
+python-dotenv>=1.0.0
