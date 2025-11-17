@@ -39,10 +39,13 @@ export class ExportCommand extends BaseCommand {
         console.log(`\n📥 Saved to: ${filename}`);
         console.log(`\n📊 Summary:`);
         console.log(`   Total threads: ${result.count}`);
-        const withDetails = (result.data as Array<{ messages?: unknown }>).filter(
-          (t) => t.messages
+        const withSteps = (result.data as Array<{ steps?: unknown[] }>).filter(
+          (t) => t.steps && t.steps.length > 0
         ).length;
-        console.log(`   With full details: ${withDetails}`);
+        console.log(`   With steps: ${withSteps}`);
+        if (withSteps < result.count) {
+          console.log(`   ⚠️  Missing steps: ${result.count - withSteps} threads have no steps!`);
+        }
       } else {
         spinner.fail(`❌ Export failed: ${result.error}`);
       }

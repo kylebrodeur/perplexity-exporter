@@ -126,7 +126,11 @@ export class BrowserManager {
           if (response.ok) {
             const data = await response.json();
             detailedThreads.push(data);
-            log.push(`  ✅ ${(data as { messages?: unknown[] }).messages?.length || 0} messages`);
+            const steps = (data as { steps?: unknown[] }).steps?.length || 0;
+            log.push(`  ✅ ${steps} steps`);
+            if (steps === 0) {
+              log.push(`  ⚠️ Warning: Thread has no steps`);
+            }
           } else {
             log.push(`  ⚠️ Failed (${response.status})`);
             detailedThreads.push(thread);
