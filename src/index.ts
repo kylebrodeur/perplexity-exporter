@@ -638,10 +638,11 @@ async function promptSaveLocation(page: Page): Promise<string> {
         const content = document.createElement('div');
         content.id = 'export-console-content';
         content.style.cssText = `
-          flex: 1;
+          flex: 1 1 0%;
           padding: 15px;
-          overflow-y: auto;
-          overflow-x: hidden;
+          overflow: scroll;
+          margin-bottom: 10rem;
+          scroll-behavior: smooth;
         `;
 
         consoleLog.appendChild(header);
@@ -708,10 +709,17 @@ async function promptSaveLocation(page: Page): Promise<string> {
         </div>
       `;
 
-      consoleContent.scrollTop = consoleContent.scrollHeight;
+      // Force scroll to bottom after DOM update
+      setTimeout(() => {
+        consoleContent.scrollTop = consoleContent.scrollHeight;
+      }, 10);
 
       const choiceInput = document.getElementById('save-choice-input') as HTMLInputElement;
-      choiceInput.focus();
+      if (choiceInput) {
+        // Scroll into view and focus
+        choiceInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => choiceInput.focus(), 100);
+      }
 
       choiceInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
