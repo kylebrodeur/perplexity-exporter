@@ -578,10 +578,77 @@ async function promptSaveLocation(page: Page): Promise<string> {
 
   const saveDir = await page.evaluate(() => {
     return new Promise<string>((resolve) => {
-      const consoleContent = document.getElementById('export-console-content');
+      let consoleContent = document.getElementById('export-console-content');
+      
+      // If console doesn't exist or was removed, recreate it
       if (!consoleContent) {
-        resolve('current');
-        return;
+        console.log('Console not found, recreating...');
+        const consoleLog = document.createElement('div');
+        consoleLog.id = 'export-console';
+        consoleLog.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          max-width: 1000px;
+          height: 500px;
+          background: rgba(0, 0, 0, 0.95);
+          color: #00ff00;
+          border-radius: 8px;
+          font-family: 'Monaco', 'Menlo', monospace;
+          font-size: 12px;
+          z-index: 9999;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          flex-direction: column;
+        `;
+
+        const header = document.createElement('div');
+        header.style.cssText = `
+          background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+          padding: 8px 12px;
+          border-radius: 8px 8px 0 0;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        `;
+
+        const buttons = document.createElement('div');
+        buttons.style.cssText = 'display: flex; gap: 6px;';
+        buttons.innerHTML = `
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></div>
+        `;
+
+        const title = document.createElement('div');
+        title.style.cssText = `
+          color: #c0c0c0;
+          font-size: 12px;
+          font-weight: 600;
+          margin-left: 8px;
+        `;
+        title.textContent = '📦 Perplexity Exporter Console';
+
+        header.appendChild(buttons);
+        header.appendChild(title);
+
+        const content = document.createElement('div');
+        content.id = 'export-console-content';
+        content.style.cssText = `
+          flex: 1;
+          padding: 15px;
+          overflow-y: auto;
+          overflow-x: hidden;
+        `;
+
+        consoleLog.appendChild(header);
+        consoleLog.appendChild(content);
+        document.body.appendChild(consoleLog);
+        
+        consoleContent = content;
       }
 
       consoleContent.innerHTML += `
