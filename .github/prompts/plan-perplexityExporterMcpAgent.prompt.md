@@ -513,29 +513,176 @@ Refactor existing code into reusable services:
 
 ## Next Steps (START HERE)
 
-1. ✅ **Research Complete** - Blaxel capabilities confirmed
-2. ✅ **Architecture Decided** - Hybrid Blaxel MCP + Modal Workers
-3. **Create Project Structure** - Set up mcp-server/ and modal-workers/ directories
-4. **Extract Core Services** - Refactor existing code into shared modules
-5. **Build Blaxel MCP Server** - Implement MCP protocol with tool handlers
-6. **Create Modal Workers** - Python functions for long-running operations
-7. **Deploy & Test** - Push to both platforms and configure Claude Desktop
-8. **Prepare Demo** - Script, video, and live commands ready
+### **Current Status**: Phase 1 Complete ✅
+- ✅ Research done on Blaxel & Modal capabilities
+- ✅ Architecture confirmed: Hybrid Blaxel MCP + Modal Workers
+- ⏳ Project structure **NOT YET CREATED** - Next step
 
-### Immediate Action
+---
+
+### **Phase 2: Project Structure Setup** (NEXT - 30 min)
+
+**Tasks:**
+1. Create `mcp-server/` directory structure with TypeScript setup
+2. Create `modal-workers/` directory structure with Python setup  
+3. Create `shared/` directory for shared types/schemas
+4. Initialize package.json for MCP server with dependencies
+5. Initialize requirements.txt for Modal workers
+6. Create basic blaxel.config.js configuration
+
+**Immediate Commands:**
 ```bash
 # Initialize Blaxel MCP server
 cd perplexity-exporter
 mkdir -p mcp-server/src/{tools,resources,types}
+mkdir -p modal-workers
+mkdir -p shared
+
 cd mcp-server
 npm init -y
-npm install @modelcontextprotocol/sdk playwright
+npm install @modelcontextprotocol/sdk typescript @types/node tsx
+npm install playwright puppeteer-core
 
-# Initialize Modal workers
-mkdir -p modal-workers
-cd modal-workers
-pip install modal playwright
+cd ../modal-workers
+echo "modal" > requirements.txt
+echo "playwright" >> requirements.txt
+echo "requests" >> requirements.txt
+
+cd ../shared
+touch types.ts schemas.json
 ```
+
+**Deliverables:**
+- ✅ Directory structure matching the plan
+- ✅ Package files with correct dependencies
+- ✅ Basic configuration files ready
+
+---
+
+### **Phase 3: Extract Core Services** (1 hour)
+
+**Tasks:**
+1. **Review existing code** in `src/` to identify reusable components
+2. **Create PerplexityApiClient.ts** - Extract API interaction logic
+   - `listThreads()` - Fetch thread metadata
+   - `getThreadDetail()` - Fetch single thread
+   - `fetchAllThreads()` - Batch fetching logic
+3. **Create ThreadExporter.ts** - Extract export logic
+   - `exportAll()` - Full export with progress
+   - `exportParallel()` - Parallel export (for Modal)
+4. **Move BrowserManager** to shared location if needed
+5. **Create shared type definitions** in `shared/types.ts`
+
+**Deliverables:**
+- 3 service classes with clear interfaces
+- Shared TypeScript types
+- Existing CLI code still functional
+
+---
+
+### **Phase 4: Build Blaxel MCP Server** (2 hours)
+
+**Tasks:**
+1. **Install MCP SDK** and set up server boilerplate
+2. **Implement MCP Tools:**
+   - `list_perplexity_threads` - Quick metadata list (Blaxel handles)
+   - `get_thread_detail` - Single thread fetch (Blaxel handles)
+   - `export_perplexity_threads` - Dispatch to Modal for long operations
+   - `search_threads` - Search cached exports (local/Modal Volume)
+   - `analyze_threads` - Optional AI analysis (Modal GPU)
+3. **Implement MCP Resources:**
+   - `perplexity://threads/all` - All exported data
+   - `perplexity://thread/{slug}` - Individual thread
+4. **Add error handling** and progress reporting
+5. **Create Dockerfile** if custom dependencies needed
+
+**Deliverables:**
+- Working MCP server with 5 tools + 2 resources
+- Local testing capability
+- Ready for Blaxel deployment
+
+---
+
+### **Phase 5: Create Modal Workers** (1.5 hours)
+
+**Tasks:**
+1. **Port Playwright automation to Python** for Modal
+2. **Create parallel export function:**
+   - `export_threads_parallel()` - Use Function.map() for parallelization
+   - Handle 30+ min exports with proper timeouts
+3. **Set up Modal Volume** for persistent storage
+4. **Create HTTP endpoints** for Blaxel to call
+5. **Optional: GPU analysis function** for thread summarization
+6. **Add health checks** and error handling
+
+**Deliverables:**
+- Python Modal app with export functions
+- Volume-backed storage for exports
+- HTTP API for Blaxel integration
+
+---
+
+### **Phase 6: Integration & Testing** (1 hour)
+
+**Tasks:**
+1. **Local testing:**
+   - Test MCP server with MCP Inspector
+   - Test Modal workers independently
+   - Test Blaxel → Modal integration
+2. **Deploy to Blaxel:**
+   - Run `bl deploy` command
+   - Configure MCP endpoint URL
+3. **Deploy to Modal:**
+   - Run `modal deploy` command
+   - Set up environment variables/secrets
+4. **Configure Claude Desktop:**
+   - Add MCP server to config
+   - Test basic tool invocations
+5. **End-to-end testing:**
+   - Test all 5 tools via Claude
+   - Verify export actually works
+   - Test resource access
+
+**Deliverables:**
+- Deployed and accessible MCP server
+- Working Modal endpoints
+- Claude Desktop configured
+- All tools tested
+
+---
+
+### **Phase 7: Demo Preparation** (30 min)
+
+**Tasks:**
+1. Create demo script with example commands
+2. Record short video showing MCP integration
+3. Prepare architecture diagram
+4. Write hackathon pitch (problem/solution/tech)
+5. Test demo commands to ensure reliability
+
+**Deliverables:**
+- Demo script with 5-7 commands
+- Video or GIF of working demo
+- Architecture diagram
+- Pitch deck or notes
+
+---
+
+## Decision Point: Full vs Minimal Path
+
+**Full Implementation** (6.5 hours):
+- All phases including Modal workers
+- Full export capability
+- Production-ready demo
+- **Recommended for hackathon impact**
+
+**Minimal Implementation** (3.5 hours):
+- Skip Modal, only Blaxel quick operations
+- Limited to `list_threads` and `get_thread_detail`
+- Faster to build, less impressive
+- **Good for proof-of-concept**
+
+**Current Plan**: Start with **Phase 2** (Project Structure), then reassess time availability.
 
 ## Demo Commands for Claude
 
