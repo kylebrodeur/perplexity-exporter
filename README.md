@@ -1,5 +1,9 @@
 # Perplexity Exporter
 
+[![CI](https://github.com/kylebrodeur/perplexity-exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/kylebrodeur/perplexity-exporter/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/perplexity-exporter.svg)](https://www.npmjs.com/package/perplexity-exporter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Export all of your [Perplexity.ai](https://www.perplexity.ai) conversation threads to JSON, preserving the full back-and-forth conversation history including sources.
 
 ## How It Works
