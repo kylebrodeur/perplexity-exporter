@@ -1,8 +1,7 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 
-# Browser data (persistent sessions)
+# Browser profile (persistent login session - never commit)
 browser-data/
 browser-data-playwright/
 
@@ -11,14 +10,10 @@ cookies.json
 .env
 .env.local
 
-# Captured data (can be large)
-captured-requests.json
-captured-responses.json
-analysis.json
-
 # Exported data
 exported-data/
 *.export.json
+perplexity-threads-*.json
 
 # Build output
 dist/
@@ -30,13 +25,17 @@ logs/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development planning docs
+.github/prompts/
 
 # OS files
-.DS_Store
+**/.DS_Store
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo

@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build",
+			"type": "shell",
+			"command": "pnpm run build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": ["$tsc"],
+			"detail": "Compile TypeScript with tsup"
+		},
+		{
+			"label": "Export Threads",
+			"type": "shell",
+			"command": "node dist/index.js",
+			"group": "none",
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"focus": true
+			},
+			"dependsOn": "Build",
+			"problemMatcher": [],
+			"detail": "Build and run the Perplexity thread exporter"
+		}
+	]
+}

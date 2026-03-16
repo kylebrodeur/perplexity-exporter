@@ -1,42 +1,37 @@
-# Source files
+# Source files (compiled output in dist/ is what's published)
 src/
-*.ts
-!*.d.ts
 tsconfig.json
 tsup.config.ts
 
 # Development files
 .git/
+.github/
 .gitignore
 .vscode/
 node_modules/
 browser-data/
+browser-data-playwright/
 
-# Test and build files
+# Config/tooling
 *.test.js
 *.spec.js
 *.test.ts
 *.spec.ts
+.eslintrc*
+eslint.config.js
+.prettierrc*
+.prettierignore
+.editorconfig
 
 # Logs and databases
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 *.db
-*.db-journal
 
 # Exported data
 perplexity-threads-*.json
 exported-data/
-data/
-
-# Config files
-.eslintrc*
-eslint.config.js
-.prettierrc*
-.editorconfig
 
 # Scripts not needed in package
 capture-requests.js

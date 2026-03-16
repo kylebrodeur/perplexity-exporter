@@ -41,7 +41,7 @@
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "src/commands/**",
-    "src/services/**"
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts"
   ]
 }
