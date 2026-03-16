@@ -20,6 +20,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# npm pack tarball
+*.tgz
+
 # Logs
 logs/
 *.log
