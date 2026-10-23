@@ -1,0 +1,12 @@
+# pnpm refuses to run a dependency's build script unless the package is
+# allowed here, and fails the install with ERR_PNPM_IGNORED_BUILDS.
+#
+# esbuild is tsup's binary backend: without its postinstall step the
+# binary is not fetched and the build fails.
+#
+# pnpm 12 calls this setting `allowBuilds`. pnpm 10 called it
+# `onlyBuiltDependencies`, and pnpm 9 had neither, so the field name is
+# tied to the pnpm version. The CI workflow pins the pnpm version to match
+# packageManager in package.json.
+allowBuilds:
+  esbuild: true

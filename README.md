@@ -15,7 +15,7 @@ Export all of your [Perplexity.ai](https://www.perplexity.ai) conversation threa
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 24+
 - A [Perplexity.ai](https://www.perplexity.ai) account
 
 ## Quick Start (no install)
@@ -27,6 +27,16 @@ pnpm dlx perplexity-exporter
 ```
 
 > **First run:** Chromium will be downloaded automatically (~150 MB, one-time setup).
+
+## Options
+
+```bash
+npx perplexity-exporter --help      # show the usage
+npx perplexity-exporter --version   # print the version
+```
+
+An unrecognised option exits with status 2 and prints the usage, so a typo
+does not leave the tool waiting on a keypress with a browser open.
 
 ## Usage (from source)
 

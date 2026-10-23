@@ -14,11 +14,15 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: latest
+          # Pinned to the same version as packageManager in package.json,
+          # not `latest`. pnpm 10 changed the build-script approval behavior
+          # and failed the install on a repo whose source had not changed,
+          # so an unpinned pnpm makes the build drift on its own.
+          version: 12.15.0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
