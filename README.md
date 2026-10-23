@@ -15,7 +15,7 @@ Export all of your [Perplexity.ai](https://www.perplexity.ai) conversation threa
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 24+
 - A [Perplexity.ai](https://www.perplexity.ai) account
 
 ## Quick Start (no install)
